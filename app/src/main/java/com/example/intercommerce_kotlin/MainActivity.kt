@@ -9,10 +9,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.intercommerce_kotlin.features.splash.presentation.SplashScreen
 import com.example.intercommerce_kotlin.ui.theme.IntercommercekotlinTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -21,13 +28,29 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             IntercommercekotlinTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                AppEntryPoint()
             }
+        }
+    }
+}
+
+@Composable
+private fun AppEntryPoint() {
+    var showSplash by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        delay(1400)
+        showSplash = false
+    }
+
+    if (showSplash) {
+        SplashScreen()
+    } else {
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+            Greeting(
+                name = "Android",
+                modifier = Modifier.padding(innerPadding)
+            )
         }
     }
 }
@@ -44,6 +67,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     IntercommercekotlinTheme {
-        Greeting("Android")
+        AppEntryPoint()
     }
 }
