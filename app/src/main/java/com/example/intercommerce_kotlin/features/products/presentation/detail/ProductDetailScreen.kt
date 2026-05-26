@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -36,11 +38,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -153,6 +158,17 @@ fun ProductDetailScreen(
             product != null -> {
                 val images = if (product.images.isNotEmpty()) product.images else listOf(product.thumbnail)
                 val selected = images.getOrElse(state.selectedImageIndex) { images.first() }
+                var heroImageReady by remember(selected) { mutableStateOf(false) }
+                val heroAlpha by animateFloatAsState(
+                    targetValue = if (heroImageReady) 1f else 0f,
+                    animationSpec = tween(durationMillis = 360),
+                    label = "detail_hero_alpha"
+                )
+                val heroScale by animateFloatAsState(
+                    targetValue = if (heroImageReady) 1f else 0.97f,
+                    animationSpec = tween(durationMillis = 360),
+                    label = "detail_hero_scale"
+                )
 
                 LazyColumn(
                     modifier = Modifier
@@ -173,8 +189,17 @@ fun ProductDetailScreen(
                             AsyncImage(
                                 model = selected,
                                 contentDescription = product.title,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Fit
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .graphicsLayer {
+                                        alpha = heroAlpha
+                                        scaleX = heroScale
+                                        scaleY = heroScale
+                                    },
+                                contentScale = ContentScale.Fit,
+                                onLoading = { heroImageReady = false },
+                                onSuccess = { heroImageReady = true },
+                                onError = { heroImageReady = true }
                             )
                             Icon(
                                 modifier = Modifier
@@ -190,6 +215,12 @@ fun ProductDetailScreen(
                     item {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             itemsIndexed(images) { index, image ->
+                                var thumbReady by remember(image) { mutableStateOf(false) }
+                                val thumbAlpha by animateFloatAsState(
+                                    targetValue = if (thumbReady) 1f else 0f,
+                                    animationSpec = tween(durationMillis = 260),
+                                    label = "detail_thumb_alpha"
+                                )
                                 AsyncImage(
                                     model = image,
                                     contentDescription = null,
@@ -202,8 +233,12 @@ fun ProductDetailScreen(
                                             RoundedCornerShape(12.dp)
                                         )
                                         .clickable { onSelectImage(index) }
-                                        .padding(4.dp),
-                                    contentScale = ContentScale.Crop
+                                        .padding(4.dp)
+                                        .graphicsLayer { alpha = thumbAlpha },
+                                    contentScale = ContentScale.Crop,
+                                    onLoading = { thumbReady = false },
+                                    onSuccess = { thumbReady = true },
+                                    onError = { thumbReady = true }
                                 )
                             }
                         }
