@@ -1,5 +1,6 @@
 package com.example.intercommerce_kotlin.features.products.data.repository
 
+import android.util.Log
 import com.example.intercommerce_kotlin.core.dispatchers.IoDispatcher
 import com.example.intercommerce_kotlin.core.error.AppError
 import com.example.intercommerce_kotlin.core.result.AppResult
@@ -23,15 +24,23 @@ class ProductRepositoryImpl @Inject constructor(
     private val localDataSource: ProductLocalDataSource,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ProductRepository {
+    private companion object {
+        const val TAG = "ProductRepository"
+    }
 
     override suspend fun getProducts(page: Int, limit: Int): AppResult<PagedProducts> =
         withContext(ioDispatcher) {
             val skip = page * limit
             try {
                 val remoteResponse = remoteDataSource.getProducts(limit = limit, skip = skip)
+                Log.d(
+                    TAG,
+                    "GET /products success -> page=$page, limit=$limit, skip=$skip, total=${remoteResponse.total}, items=${remoteResponse.products.size}"
+                )
                 localDataSource.upsertProducts(remoteResponse.products.map { it.toEntity(System.currentTimeMillis()) })
 
                 val localPage = localDataSource.getPagedProducts(limit = limit, offset = skip)
+                Log.d(TAG, "Local page mapped -> page=$page, items=${localPage.size}")
                 AppResult.Success(
                     PagedProducts(
                         items = localPage.map { it.toDomain() },
@@ -40,8 +49,10 @@ class ProductRepositoryImpl @Inject constructor(
                     )
                 )
             } catch (throwable: Throwable) {
+                Log.e(TAG, "GET /products failed -> page=$page, using fallback", throwable)
                 val localPage = localDataSource.getPagedProducts(limit = limit, offset = skip)
                 if (localPage.isNotEmpty()) {
+                    Log.d(TAG, "Offline fallback hit -> page=$page, cachedItems=${localPage.size}")
                     AppResult.Success(
                         PagedProducts(
                             items = localPage.map { it.toDomain() },
@@ -58,11 +69,16 @@ class ProductRepositoryImpl @Inject constructor(
     override suspend fun searchProducts(query: String): AppResult<List<Product>> = withContext(ioDispatcher) {
         try {
             val remoteResponse = remoteDataSource.searchProducts(query)
+            Log.d(
+                TAG,
+                "GET /products/search success -> query='$query', remoteItems=${remoteResponse.products.size}"
+            )
             val entities = remoteResponse.products.map { it.toEntity(System.currentTimeMillis()) }
             localDataSource.upsertProducts(entities)
             AppResult.Success(entities.map { it.toDomain() })
         } catch (_: Throwable) {
             val cached = localDataSource.searchProducts(query)
+            Log.d(TAG, "GET /products/search fallback -> query='$query', cachedItems=${cached.size}")
             if (cached.isNotEmpty()) {
                 AppResult.Success(cached.map { it.toDomain() })
             } else {
@@ -75,10 +91,12 @@ class ProductRepositoryImpl @Inject constructor(
         val local = localDataSource.getProductById(id)
         try {
             val remote = remoteDataSource.getProductDetail(id)
+            Log.d(TAG, "GET /products/$id success -> title='${remote.title}'")
             val entity = remote.toEntity(System.currentTimeMillis())
             localDataSource.upsertProducts(listOf(entity))
             AppResult.Success(entity.toDomain())
         } catch (throwable: Throwable) {
+            Log.e(TAG, "GET /products/$id failed -> localAvailable=${local != null}", throwable)
             if (local != null) {
                 AppResult.Success(local.toDomain())
             } else {
