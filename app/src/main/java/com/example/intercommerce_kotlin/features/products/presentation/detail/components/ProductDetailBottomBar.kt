@@ -63,7 +63,7 @@ fun ProductDetailBottomBar(
                 ) {
                     Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = "Agregar al carrito",
+                            text = if (canIncreaseQuantity) "Agregar al carrito" else "Agotado",
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold

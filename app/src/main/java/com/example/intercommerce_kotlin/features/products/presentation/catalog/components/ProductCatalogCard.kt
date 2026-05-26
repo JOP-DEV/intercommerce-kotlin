@@ -154,7 +154,7 @@ fun ProductCatalogCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Agregar al carrito",
+                        text = if (canIncreaseQuantity) "Agregar al carrito" else "Agotado",
                         color = Color.White,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
