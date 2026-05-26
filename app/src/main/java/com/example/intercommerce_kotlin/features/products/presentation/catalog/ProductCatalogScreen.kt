@@ -1,5 +1,7 @@
 package com.example.intercommerce_kotlin.features.products.presentation.catalog
 
+import android.widget.Toast
+import androidx.compose.material3.Button
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,10 +33,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.intercommerce_kotlin.R
 import com.example.intercommerce_kotlin.features.products.presentation.catalog.components.ProductCatalogCard
 import com.example.intercommerce_kotlin.features.products.presentation.catalog.components.ProductCatalogCardSkeleton
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -57,15 +61,27 @@ fun ProductCatalogRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val gridState = rememberLazyGridState()
+    val context = LocalContext.current
 
     HandleLoadMore(gridState = gridState) {
         viewModel.onEvent(ProductCatalogUiEvent.LoadMore)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEffect.collect { effect ->
+            when (effect) {
+                is ProductCatalogUiEffect.ShowToast -> {
+                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     ProductCatalogScreen(
         state = state,
         gridState = gridState,
         onQueryChange = { viewModel.onEvent(ProductCatalogUiEvent.QueryChanged(it)) },
+        onRetryClick = { viewModel.onEvent(ProductCatalogUiEvent.Retry) },
         onProductClick = onProductClick,
         onCartClick = onCartClick,
         onIncreaseClick = { productId -> viewModel.increaseProductQuantity(productId) },
@@ -93,6 +109,7 @@ fun ProductCatalogScreen(
     state: ProductCatalogUiState,
     gridState: LazyGridState,
     onQueryChange: (String) -> Unit,
+    onRetryClick: () -> Unit,
     onProductClick: (Int) -> Unit,
     onCartClick: () -> Unit,
     onIncreaseClick: (Int) -> Unit,
@@ -120,7 +137,13 @@ fun ProductCatalogScreen(
 
         if (state.errorMessage != null && state.products.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = state.errorMessage)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = state.errorMessage)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = onRetryClick) {
+                        Text(text = androidx.compose.ui.res.stringResource(id = R.string.retry))
+                    }
+                }
             }
             return
         }
@@ -128,7 +151,7 @@ fun ProductCatalogScreen(
         if (state.query.isNotBlank() && state.products.isEmpty() && !state.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "No se encontraron productos",
+                    text = androidx.compose.ui.res.stringResource(id = R.string.catalog_empty_search),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -149,17 +172,6 @@ fun ProductCatalogScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            if (state.isOffline) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        text = "Mostrando datos guardados (modo offline)",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.padding(vertical = 2.dp)
-                    )
-                }
-            }
-
             items(items = products, key = { it.id }) { product ->
                 ProductCatalogCard(
                     product = product,

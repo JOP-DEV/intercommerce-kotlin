@@ -2,6 +2,9 @@ package com.example.intercommerce_kotlin.features.products.presentation.catalog
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.intercommerce_kotlin.R
+import com.example.intercommerce_kotlin.core.network.ConnectionStatus
+import com.example.intercommerce_kotlin.core.network.ConnectivityObserver
 import com.example.intercommerce_kotlin.core.result.AppResult
 import com.example.intercommerce_kotlin.features.cart.domain.usecase.AddProductToCartUseCase
 import com.example.intercommerce_kotlin.features.cart.domain.usecase.ObserveCartUseCase
@@ -12,8 +15,12 @@ import com.example.intercommerce_kotlin.features.products.domain.usecase.SearchP
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -21,6 +28,7 @@ import kotlinx.coroutines.launch
 class ProductCatalogViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
     private val searchProductsUseCase: SearchProductsUseCase,
+    private val connectivityObserver: ConnectivityObserver,
     private val observeCartUseCase: ObserveCartUseCase,
     private val addProductToCartUseCase: AddProductToCartUseCase,
     private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
@@ -29,12 +37,42 @@ class ProductCatalogViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ProductCatalogUiState())
     val uiState: StateFlow<ProductCatalogUiState> = _uiState.asStateFlow()
+    private val _uiEffect = MutableSharedFlow<ProductCatalogUiEffect>()
+    val uiEffect: SharedFlow<ProductCatalogUiEffect> = _uiEffect.asSharedFlow()
 
     private var currentPage = 0
+    private var previousConnectionStatus: ConnectionStatus? = null
+    private var pendingConnectionRestoredMessage = false
 
     init {
         observeCart()
+        observeConnectivity()
         onEvent(ProductCatalogUiEvent.LoadInitial)
+    }
+
+    private fun observeConnectivity() {
+        viewModelScope.launch {
+            connectivityObserver.status
+                .distinctUntilChanged()
+                .collect { status ->
+                    val previous = previousConnectionStatus
+                    previousConnectionStatus = status
+
+                    if (previous == null) return@collect
+
+                    if (previous == ConnectionStatus.Available && status == ConnectionStatus.Unavailable) {
+                        val message = if (_uiState.value.products.isNotEmpty()) {
+                            R.string.offline_with_cache
+                        } else {
+                            R.string.offline_without_cache
+                        }
+                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(message))
+                    } else if (previous == ConnectionStatus.Unavailable && status == ConnectionStatus.Available) {
+                        pendingConnectionRestoredMessage = true
+                        retryCurrentRequest()
+                    }
+                }
+        }
     }
 
     private fun observeCart() {
@@ -87,7 +125,16 @@ class ProductCatalogViewModel @Inject constructor(
         when (event) {
             ProductCatalogUiEvent.LoadInitial -> loadInitial()
             ProductCatalogUiEvent.LoadMore -> loadMore()
+            ProductCatalogUiEvent.Retry -> retryCurrentRequest()
             is ProductCatalogUiEvent.QueryChanged -> onQueryChanged(event.query)
+        }
+    }
+
+    private fun retryCurrentRequest() {
+        if (_uiState.value.query.isBlank()) {
+            loadInitial()
+        } else {
+            performSearch(_uiState.value.query.trim())
         }
     }
 
@@ -111,13 +158,20 @@ class ProductCatalogViewModel @Inject constructor(
                             endReached = result.data.endReached
                         )
                     }
+                    if (result.data.isOffline) {
+                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.offline_with_cache))
+                    }
+                    emitConnectionRestoredIfNeeded()
                 }
                 is AppResult.Error -> {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = "No pudimos cargar productos. Intenta nuevamente."
+                            errorMessage = "No pudimos cargar los productos. Revisa tu conexión e inténtalo nuevamente."
                         )
+                    }
+                    if (!connectivityObserver.isConnected()) {
+                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.offline_without_cache))
                     }
                 }
             }
@@ -142,6 +196,10 @@ class ProductCatalogViewModel @Inject constructor(
                             endReached = result.data.endReached
                         )
                     }
+                    if (result.data.isOffline) {
+                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.offline_with_cache))
+                    }
+                    emitConnectionRestoredIfNeeded()
                 }
                 is AppResult.Error -> {
                     _uiState.update {
@@ -162,9 +220,13 @@ class ProductCatalogViewModel @Inject constructor(
             return
         }
 
+        performSearch(query.trim())
+    }
+
+    private fun performSearch(query: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            when (val result = searchProductsUseCase(query.trim())) {
+            when (val result = searchProductsUseCase(query)) {
                 is AppResult.Success -> {
                     _uiState.update {
                         it.copy(
@@ -174,6 +236,10 @@ class ProductCatalogViewModel @Inject constructor(
                             endReached = true
                         )
                     }
+                    if (!connectivityObserver.isConnected()) {
+                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.offline_with_cache))
+                    }
+                    emitConnectionRestoredIfNeeded()
                 }
                 is AppResult.Error -> {
                     _uiState.update {
@@ -182,8 +248,19 @@ class ProductCatalogViewModel @Inject constructor(
                             errorMessage = "No encontramos resultados para tu búsqueda."
                         )
                     }
+                    if (!connectivityObserver.isConnected()) {
+                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.offline_without_cache))
+                    }
                 }
             }
+        }
+    }
+
+    private fun emitConnectionRestoredIfNeeded() {
+        if (!pendingConnectionRestoredMessage) return
+        pendingConnectionRestoredMessage = false
+        viewModelScope.launch {
+            _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.connection_restored))
         }
     }
 }
