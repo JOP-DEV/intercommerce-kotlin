@@ -11,8 +11,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.intercommerce_kotlin.features.products.presentation.catalog.ProductCatalogRoute
 import com.example.intercommerce_kotlin.features.splash.presentation.SplashScreen
+import com.example.intercommerce_kotlin.navigation.AppNavHost
 import com.example.intercommerce_kotlin.ui.theme.IntercommercekotlinTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -42,7 +42,7 @@ private fun AppEntryPoint() {
     if (showSplash) {
         SplashScreen()
     } else {
-        ProductCatalogRoute()
+        AppNavHost()
     }
 }
 
