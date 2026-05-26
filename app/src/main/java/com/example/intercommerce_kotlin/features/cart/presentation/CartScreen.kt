@@ -36,11 +36,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.intercommerce_kotlin.R
 import com.example.intercommerce_kotlin.features.cart.domain.model.CartItem
 
 private val AccentOrange = Color(0xFFFF5A1F)
@@ -78,9 +80,9 @@ fun CartScreen(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Outlined.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.Outlined.ArrowBack, contentDescription = stringResource(id = R.string.cd_back))
                     }
-                    Text("Carrito", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                    Text(stringResource(id = R.string.cart_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -94,7 +96,7 @@ fun CartScreen(
 
             state.isEmpty -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Tu carrito está vacío")
+                    Text(stringResource(id = R.string.cart_empty))
                 }
             }
 
@@ -162,7 +164,7 @@ private fun CartItemCard(
                 }
             }
             IconButton(onClick = onRemove) {
-                Icon(Icons.Outlined.DeleteOutline, contentDescription = "Eliminar")
+                Icon(Icons.Outlined.DeleteOutline, contentDescription = stringResource(id = R.string.cd_delete))
             }
         }
     }
@@ -202,12 +204,12 @@ private fun SummaryCard(
             .border(1.dp, Color(0xFFE8EAEE), RoundedCornerShape(16.dp))
             .padding(14.dp)
     ) {
-        SummaryRow("Subtotal ($itemsCount productos)", "$${"%.2f".format(subtotal)}")
-        SummaryRow("Descuento", "- $${"%.2f".format(discount)}", valueColor = PositiveGreen)
-        SummaryRow("Impuesto", "$${"%.2f".format(tax)}")
+        SummaryRow(stringResource(id = R.string.cart_summary_subtotal, itemsCount), "$${"%.2f".format(subtotal)}")
+        SummaryRow(stringResource(id = R.string.cart_summary_discount), "- $${"%.2f".format(discount)}", valueColor = PositiveGreen)
+        SummaryRow(stringResource(id = R.string.cart_summary_tax), "$${"%.2f".format(tax)}")
         Spacer(Modifier.height(8.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Total", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(stringResource(id = R.string.cart_summary_total), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Text(
                 "$${"%.2f".format(total)}",
                 style = MaterialTheme.typography.headlineMedium,
@@ -222,7 +224,7 @@ private fun SummaryCard(
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = AccentOrange)
         ) {
-            Text("Finalizar compra")
+            Text(stringResource(id = R.string.cart_checkout))
         }
     }
 }

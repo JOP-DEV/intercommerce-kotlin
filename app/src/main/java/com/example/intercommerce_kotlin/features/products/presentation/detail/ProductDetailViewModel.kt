@@ -2,6 +2,7 @@ package com.example.intercommerce_kotlin.features.products.presentation.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.intercommerce_kotlin.R
 import com.example.intercommerce_kotlin.core.result.AppResult
 import com.example.intercommerce_kotlin.features.cart.domain.usecase.AddProductToCartUseCase
 import com.example.intercommerce_kotlin.features.cart.domain.usecase.ObserveCartUseCase
@@ -46,7 +47,7 @@ class ProductDetailViewModel @Inject constructor(
     fun loadProduct(productId: Int) {
         currentProductId = productId
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, errorMessageRes = null) }
             when (val result = getProductDetailUseCase(productId)) {
                 is AppResult.Success -> {
                     _uiState.update {
@@ -62,7 +63,7 @@ class ProductDetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = "No pudimos cargar el detalle del producto."
+                            errorMessageRes = R.string.detail_error_load_product
                         )
                     }
                 }

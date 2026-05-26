@@ -1,5 +1,6 @@
 package com.example.intercommerce_kotlin.features.products.presentation.catalog
 
+import androidx.annotation.StringRes
 import com.example.intercommerce_kotlin.features.products.domain.model.Product
 
 data class ProductCatalogUiState(
@@ -11,5 +12,5 @@ data class ProductCatalogUiState(
     val isLoadingMore: Boolean = false,
     val isOffline: Boolean = false,
     val endReached: Boolean = false,
-    val errorMessage: String? = null
+    @StringRes val errorMessageRes: Int? = null
 )

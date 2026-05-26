@@ -35,11 +35,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.intercommerce_kotlin.R
 import com.example.intercommerce_kotlin.features.products.domain.model.Product
 import kotlin.math.floor
 
@@ -90,7 +92,7 @@ fun ProductCatalogCard(
                 Icon(
                     modifier = Modifier.align(Alignment.TopEnd),
                     imageVector = Icons.Outlined.FavoriteBorder,
-                    contentDescription = "Favorito",
+                    contentDescription = stringResource(id = R.string.cd_favorite),
                     tint = Color(0xFF44474F)
                 )
             }
@@ -154,7 +156,11 @@ fun ProductCatalogCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (canIncreaseQuantity) "Agregar al carrito" else "Agotado",
+                        text = if (canIncreaseQuantity) {
+                            stringResource(id = R.string.add_to_cart)
+                        } else {
+                            stringResource(id = R.string.out_of_stock)
+                        },
                         color = Color.White,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
@@ -179,7 +185,7 @@ fun ProductCatalogCard(
                         if (quantityInCart == 1) {
                             Icon(
                                 imageVector = Icons.Outlined.DeleteOutline,
-                                contentDescription = "Eliminar",
+                                contentDescription = stringResource(id = R.string.cd_delete),
                                 tint = Color.White
                             )
                         } else {

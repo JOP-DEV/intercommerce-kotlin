@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -45,7 +46,7 @@ fun SplashScreen(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Intercommerce",
+            text = stringResource(id = R.string.splash_brand_name),
             style = MaterialTheme.typography.headlineMedium.copy(
                 fontFamily = FontFamily(Font(R.font.orbitron_bold)),
                 fontWeight = FontWeight.Bold,

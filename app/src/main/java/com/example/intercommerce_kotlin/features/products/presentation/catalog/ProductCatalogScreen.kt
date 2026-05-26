@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -135,10 +136,10 @@ fun ProductCatalogScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (state.errorMessage != null && state.products.isEmpty()) {
+        if (state.errorMessageRes != null && state.products.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = state.errorMessage)
+                    Text(text = stringResource(id = state.errorMessageRes))
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(onClick = onRetryClick) {
                         Text(text = androidx.compose.ui.res.stringResource(id = R.string.retry))
@@ -207,11 +208,11 @@ private fun HeaderRow(onCartClick: () -> Unit, cartItemsCount: Int) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = {}) {
-                Icon(imageVector = Icons.Outlined.Menu, contentDescription = "Menu")
+                Icon(imageVector = Icons.Outlined.Menu, contentDescription = stringResource(id = R.string.cd_menu))
             }
             Column {
                 Text(
-                    text = "Hola!",
+                    text = stringResource(id = R.string.hello_short),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color(0xFF646B77)
                 )
@@ -222,7 +223,7 @@ private fun HeaderRow(onCartClick: () -> Unit, cartItemsCount: Int) {
             IconButton(onClick = onCartClick) {
                 Icon(
                     imageVector = Icons.Outlined.ShoppingCart,
-                    contentDescription = "Cart",
+                    contentDescription = stringResource(id = R.string.cd_cart),
                     tint = Color.Black
                 )
             }
@@ -256,11 +257,11 @@ private fun SearchRow(query: String, onQueryChange: (String) -> Unit) {
         leadingIcon = {
             Icon(
                 imageVector = Icons.Outlined.Search,
-                contentDescription = "Buscar"
+                contentDescription = stringResource(id = R.string.cd_search)
             )
         },
         shape = RoundedCornerShape(18.dp),
-        placeholder = { Text("Buscar productos...") }
+        placeholder = { Text(stringResource(id = R.string.search_products_placeholder)) }
     )
 }
 

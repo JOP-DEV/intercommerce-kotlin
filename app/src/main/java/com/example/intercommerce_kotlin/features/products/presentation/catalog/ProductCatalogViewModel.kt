@@ -144,7 +144,7 @@ class ProductCatalogViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     isLoading = true,
-                    errorMessage = null,
+                    errorMessageRes = null,
                     endReached = false
                 )
             }
@@ -167,7 +167,7 @@ class ProductCatalogViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = "No pudimos cargar los productos. Revisa tu conexión e inténtalo nuevamente."
+                            errorMessageRes = R.string.catalog_error_load_products
                         )
                     }
                     if (!connectivityObserver.isConnected()) {
@@ -183,7 +183,7 @@ class ProductCatalogViewModel @Inject constructor(
         if (state.isLoading || state.isLoadingMore || state.endReached || state.query.isNotBlank()) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingMore = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoadingMore = true, errorMessageRes = null) }
             val nextPage = currentPage + 1
             when (val result = getProductsUseCase(nextPage)) {
                 is AppResult.Success -> {
@@ -205,7 +205,7 @@ class ProductCatalogViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoadingMore = false,
-                            errorMessage = "No pudimos cargar más productos."
+                            errorMessageRes = R.string.catalog_error_load_more
                         )
                     }
                 }
@@ -225,7 +225,7 @@ class ProductCatalogViewModel @Inject constructor(
 
     private fun performSearch(query: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, errorMessageRes = null) }
             when (val result = searchProductsUseCase(query)) {
                 is AppResult.Success -> {
                     _uiState.update {
@@ -245,7 +245,7 @@ class ProductCatalogViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = "No encontramos resultados para tu búsqueda."
+                            errorMessageRes = R.string.catalog_error_search
                         )
                     }
                     if (!connectivityObserver.isConnected()) {

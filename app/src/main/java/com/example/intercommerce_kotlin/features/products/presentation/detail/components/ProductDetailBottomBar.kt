@@ -23,8 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.intercommerce_kotlin.R
 
 private val AccentOrange = Color(0xFFFF5A1F)
 private val CartControlHeight = 42.dp
@@ -63,7 +65,7 @@ fun ProductDetailBottomBar(
                 ) {
                     Box(modifier = Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = if (canIncreaseQuantity) "Agregar al carrito" else "Agotado",
+                            text = if (canIncreaseQuantity) stringResource(id = R.string.add_to_cart) else stringResource(id = R.string.out_of_stock),
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
@@ -81,7 +83,7 @@ fun ProductDetailBottomBar(
                     if (quantityInCart == 1) {
                         Icon(
                             imageVector = Icons.Outlined.DeleteOutline,
-                            contentDescription = "Eliminar",
+                            contentDescription = stringResource(id = R.string.cd_delete),
                             tint = Color.White
                         )
                     } else {

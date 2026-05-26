@@ -43,12 +43,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.intercommerce_kotlin.R
 import com.example.intercommerce_kotlin.features.products.presentation.detail.components.ProductDetailBottomBar
 import kotlin.math.floor
 
@@ -116,10 +118,10 @@ fun ProductDetailScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Volver")
+                    Icon(Icons.Outlined.ArrowBack, contentDescription = stringResource(id = R.string.cd_back))
                 }
                 IconButton(onClick = onGoToCart) {
-                    Icon(Icons.Outlined.ShoppingCart, contentDescription = "Carrito")
+                    Icon(Icons.Outlined.ShoppingCart, contentDescription = stringResource(id = R.string.cd_cart))
                 }
             }
         },
@@ -142,9 +144,9 @@ fun ProductDetailScreen(
                 }
             }
 
-            state.errorMessage != null -> {
+            state.errorMessageRes != null -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(state.errorMessage)
+                    Text(stringResource(id = state.errorMessageRes))
                 }
             }
 
@@ -180,7 +182,7 @@ fun ProductDetailScreen(
                                     .background(Color.White, CircleShape)
                                     .padding(6.dp),
                                 imageVector = Icons.Outlined.FavoriteBorder,
-                                contentDescription = "Favorite"
+                                contentDescription = stringResource(id = R.string.cd_favorite)
                             )
                         }
                     }
@@ -241,9 +243,9 @@ fun ProductDetailScreen(
                             }
                             Spacer(Modifier.height(8.dp))
                             val stockLabel = when {
-                                product.stock <= 0 -> "Agotado"
-                                product.stock <= 10 -> "Últimas ${product.stock} unidades"
-                                else -> "${product.stock} unidades disponibles"
+                                product.stock <= 0 -> stringResource(id = R.string.out_of_stock)
+                                product.stock <= 10 -> stringResource(id = R.string.stock_last_units, product.stock)
+                                else -> stringResource(id = R.string.stock_available_units, product.stock)
                             }
                             val stockColor = if (product.stock > 0) PositiveGreen else Color(0xFFB42318)
 
@@ -255,16 +257,16 @@ fun ProductDetailScreen(
                             Spacer(Modifier.height(10.dp))
                             Text(product.description, style = MaterialTheme.typography.bodyLarge, color = Color(0xFF545A67))
                             Spacer(Modifier.height(10.dp))
-                            DetailRow("Marca", product.brand ?: "-")
-                            DetailRow("Categoría", product.category)
-                            DetailRow("Stock", product.stock.toString())
-                            DetailRow("Envío", "Entrega en 24-48 horas")
-                            DetailRow("Devolución", "Hasta 7 días")
+                            DetailRow(stringResource(id = R.string.label_brand), product.brand ?: "-")
+                            DetailRow(stringResource(id = R.string.label_category), product.category)
+                            DetailRow(stringResource(id = R.string.label_stock), product.stock.toString())
+                            DetailRow(stringResource(id = R.string.label_shipping), stringResource(id = R.string.shipping_eta))
+                            DetailRow(stringResource(id = R.string.label_return), stringResource(id = R.string.return_eta))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
                             ) {
-                                Icon(Icons.Outlined.Share, contentDescription = "Compartir")
+                                Icon(Icons.Outlined.Share, contentDescription = stringResource(id = R.string.cd_share))
                             }
                         }
                     }
