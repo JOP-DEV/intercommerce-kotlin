@@ -13,5 +13,6 @@ data class CartUiState(
         itemsCount = 0
     ),
     val isLoading: Boolean = true,
-    val isEmpty: Boolean = false
+    val isEmpty: Boolean = false,
+    val showNoConnectionSheet: Boolean = false
 )

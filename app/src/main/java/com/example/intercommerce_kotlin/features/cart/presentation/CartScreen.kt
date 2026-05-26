@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.intercommerce_kotlin.R
 import com.example.intercommerce_kotlin.features.cart.domain.model.CartItem
+import com.example.intercommerce_kotlin.features.cart.presentation.components.NoConnectionBottomSheet
 
 private val AccentOrange = Color(0xFFFF5A1F)
 private val PositiveGreen = Color(0xFF71A521)
@@ -56,7 +57,9 @@ fun CartRoute(onBack: () -> Unit, viewModel: CartViewModel = hiltViewModel()) {
         onBack = onBack,
         onIncrease = viewModel::increaseQuantity,
         onDecrease = viewModel::decreaseQuantity,
-        onRemove = viewModel::removeItem
+        onRemove = viewModel::removeItem,
+        onCheckout = viewModel::onCheckoutClick,
+        onDismissNoConnectionSheet = viewModel::dismissNoConnectionSheet
     )
 }
 
@@ -66,8 +69,17 @@ fun CartScreen(
     onBack: () -> Unit,
     onIncrease: (CartItem) -> Unit,
     onDecrease: (CartItem) -> Unit,
-    onRemove: (CartItem) -> Unit
+    onRemove: (CartItem) -> Unit,
+    onCheckout: () -> Unit,
+    onDismissNoConnectionSheet: () -> Unit
 ) {
+    if (state.showNoConnectionSheet) {
+        NoConnectionBottomSheet(
+            onRetry = onCheckout,
+            onDismiss = onDismissNoConnectionSheet
+        )
+    }
+
     Scaffold(
         topBar = {
             Row(
@@ -123,7 +135,8 @@ fun CartScreen(
                             subtotal = state.summary.subtotal,
                             discount = state.summary.discount,
                             tax = state.summary.tax,
-                            total = state.summary.total
+                            total = state.summary.total,
+                            onCheckout = onCheckout
                         )
                     }
                 }
@@ -196,7 +209,8 @@ private fun SummaryCard(
     subtotal: Double,
     discount: Double,
     tax: Double,
-    total: Double
+    total: Double,
+    onCheckout: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -220,7 +234,7 @@ private fun SummaryCard(
 
         Spacer(Modifier.height(12.dp))
         Button(
-            onClick = {},
+            onClick = onCheckout,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = AccentOrange)
         ) {

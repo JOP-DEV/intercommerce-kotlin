@@ -2,6 +2,7 @@ package com.example.intercommerce_kotlin.features.cart.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.intercommerce_kotlin.core.network.ConnectivityObserver
 import com.example.intercommerce_kotlin.features.cart.domain.model.CartItem
 import com.example.intercommerce_kotlin.features.cart.domain.usecase.CalculateCartSummaryUseCase
 import com.example.intercommerce_kotlin.features.cart.domain.usecase.ObserveCartUseCase
@@ -20,7 +21,8 @@ class CartViewModel @Inject constructor(
     private val observeCartUseCase: ObserveCartUseCase,
     private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
     private val removeCartItemUseCase: RemoveCartItemUseCase,
-    private val calculateCartSummaryUseCase: CalculateCartSummaryUseCase
+    private val calculateCartSummaryUseCase: CalculateCartSummaryUseCase,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CartUiState())
@@ -50,6 +52,17 @@ class CartViewModel @Inject constructor(
         viewModelScope.launch {
             removeCartItemUseCase(item.productId)
         }
+    }
+
+    fun onCheckoutClick() {
+        val isConnected = connectivityObserver.isConnected()
+        if (!isConnected) {
+            _uiState.update { it.copy(showNoConnectionSheet = true) }
+        }
+    }
+
+    fun dismissNoConnectionSheet() {
+        _uiState.update { it.copy(showNoConnectionSheet = false) }
     }
 
     private fun updateState(items: List<CartItem>) {
