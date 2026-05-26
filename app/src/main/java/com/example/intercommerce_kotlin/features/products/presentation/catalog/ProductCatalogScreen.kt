@@ -22,8 +22,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddShoppingCart
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.ShoppingCart
@@ -52,7 +50,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 private val AccentOrange = Color(0xFFFF5A1F)
 
 @Composable
-fun ProductCatalogRoute(viewModel: ProductCatalogViewModel = hiltViewModel()) {
+fun ProductCatalogRoute(
+    onProductClick: (Int) -> Unit,
+    onCartClick: () -> Unit,
+    viewModel: ProductCatalogViewModel = hiltViewModel()
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val gridState = rememberLazyGridState()
 
@@ -63,7 +65,9 @@ fun ProductCatalogRoute(viewModel: ProductCatalogViewModel = hiltViewModel()) {
     ProductCatalogScreen(
         state = state,
         gridState = gridState,
-        onQueryChange = { viewModel.onEvent(ProductCatalogUiEvent.QueryChanged(it)) }
+        onQueryChange = { viewModel.onEvent(ProductCatalogUiEvent.QueryChanged(it)) },
+        onProductClick = onProductClick,
+        onCartClick = onCartClick
     )
 }
 
@@ -86,7 +90,9 @@ private fun HandleLoadMore(gridState: LazyGridState, onLoadMore: () -> Unit) {
 fun ProductCatalogScreen(
     state: ProductCatalogUiState,
     gridState: LazyGridState,
-    onQueryChange: (String) -> Unit
+    onQueryChange: (String) -> Unit,
+    onProductClick: (Int) -> Unit,
+    onCartClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -95,7 +101,7 @@ fun ProductCatalogScreen(
             .padding(horizontal = 14.dp)
     ) {
         Spacer(modifier = Modifier.height(10.dp))
-        HeaderRow()
+        HeaderRow(onCartClick = onCartClick)
         Spacer(modifier = Modifier.height(14.dp))
 
         SearchRow(
@@ -148,7 +154,10 @@ fun ProductCatalogScreen(
             }
 
             items(items = products, key = { it.id }) { product ->
-                ProductCatalogCard(product = product)
+                ProductCatalogCard(
+                    product = product,
+                    onClick = { onProductClick(product.id) }
+                )
             }
 
             if (state.isLoadingMore) {
@@ -168,7 +177,7 @@ fun ProductCatalogScreen(
 }
 
 @Composable
-private fun HeaderRow() {
+private fun HeaderRow(onCartClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -188,7 +197,7 @@ private fun HeaderRow() {
         }
 
         Box {
-            IconButton(onClick = {}) {
+            IconButton(onClick = onCartClick) {
                 Icon(
                     imageVector = Icons.Outlined.ShoppingCart,
                     contentDescription = "Cart",

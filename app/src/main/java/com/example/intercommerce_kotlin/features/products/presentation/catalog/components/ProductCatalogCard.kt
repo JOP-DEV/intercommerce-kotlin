@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,7 +48,11 @@ private val PositiveGreen = Color(0xFF71A521)
 private val CardBorder = Color(0xFFE8EAEE)
 
 @Composable
-fun ProductCatalogCard(product: Product) {
+fun ProductCatalogCard(
+    product: Product,
+    onClick: () -> Unit,
+    onAddToCartClick: () -> Unit = {}
+) {
     val discount = product.discountPercentage.roundToInt().coerceAtLeast(0)
     val discountedPrice = (product.price * (1 - (product.discountPercentage / 100))).coerceAtLeast(0.0)
 
@@ -56,6 +61,7 @@ fun ProductCatalogCard(product: Product) {
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White)
             .border(1.dp, CardBorder, RoundedCornerShape(16.dp))
+            .clickable { onClick() }
             .padding(10.dp)
     ) {
         Column {
@@ -142,7 +148,7 @@ fun ProductCatalogCard(product: Product) {
                             .background(AccentOrange)
                     ) {
                         IconButton(
-                            onClick = {},
+                            onClick = onAddToCartClick,
                             modifier = Modifier.size(34.dp)
                         ) {
                             Icon(
