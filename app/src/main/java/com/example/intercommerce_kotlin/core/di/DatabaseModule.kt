@@ -3,6 +3,7 @@ package com.example.intercommerce_kotlin.core.di
 import android.content.Context
 import androidx.room.Room
 import com.example.intercommerce_kotlin.core.database.AppDatabase
+import com.example.intercommerce_kotlin.features.cart.data.local.dao.CartDao
 import com.example.intercommerce_kotlin.features.products.data.local.dao.ProductDao
 import dagger.Module
 import dagger.Provides
@@ -22,9 +23,12 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "intercommerce.db"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     @Provides
     fun provideProductDao(database: AppDatabase): ProductDao = database.productDao()
+
+    @Provides
+    fun provideCartDao(database: AppDatabase): CartDao = database.cartDao()
 }
