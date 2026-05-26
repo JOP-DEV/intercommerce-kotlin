@@ -44,7 +44,6 @@ import com.example.intercommerce_kotlin.features.products.domain.model.Product
 import kotlin.math.floor
 
 private val AccentOrange = Color(0xFFFF5A1F)
-private val PositiveGreen = Color(0xFF71A521)
 private val CardBorder = Color(0xFFE8EAEE)
 private val CartControlHeight = 40.dp
 private val CartControlCorner = 20.dp
@@ -135,24 +134,12 @@ fun ProductCatalogCard(
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "★ ${"%.1f".format(product.rating)}",
-                    color = AccentOrange,
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = if (availableStock > 0) "● Stock: $availableStock" else "● Agotado",
-                    color = if (availableStock > 0) PositiveGreen else AccentOrange,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
+            Text(
+                text = "★ ${"%.1f".format(product.rating)}",
+                color = AccentOrange,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 6.dp)
+            )
 
             Spacer(modifier = Modifier.height(10.dp))
             if (quantityInCart <= 0) {
