@@ -15,6 +15,15 @@ interface CartDao {
     @Query("SELECT * FROM cart_items WHERE productId = :productId LIMIT 1")
     suspend fun getByProductId(productId: Int): CartItemEntity?
 
+    @Query("UPDATE cart_items SET quantity = :quantity, updatedAt = :updatedAt WHERE productId = :productId")
+    suspend fun updateQuantity(productId: Int, quantity: Int, updatedAt: Long)
+
+    @Query("DELETE FROM cart_items WHERE productId = :productId")
+    suspend fun removeByProductId(productId: Int)
+
+    @Query("DELETE FROM cart_items")
+    suspend fun clear()
+
     @Query("SELECT * FROM cart_items ORDER BY updatedAt DESC")
     fun observeCartItems(): Flow<List<CartItemEntity>>
 }

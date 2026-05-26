@@ -12,5 +12,13 @@ class CartLocalDataSourceImpl @Inject constructor(
 
     override suspend fun getByProductId(productId: Int): CartItemEntity? = dao.getByProductId(productId)
 
+    override suspend fun updateQuantity(productId: Int, quantity: Int) {
+        dao.updateQuantity(productId = productId, quantity = quantity, updatedAt = System.currentTimeMillis())
+    }
+
+    override suspend fun removeByProductId(productId: Int) = dao.removeByProductId(productId)
+
+    override suspend fun clear() = dao.clear()
+
     override fun observeCartItems(): Flow<List<CartItemEntity>> = dao.observeCartItems()
 }

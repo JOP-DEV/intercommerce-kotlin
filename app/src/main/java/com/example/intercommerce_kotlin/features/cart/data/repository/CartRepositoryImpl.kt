@@ -37,6 +37,22 @@ class CartRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun updateQuantity(productId: Int, quantity: Int) = withContext(ioDispatcher) {
+        if (quantity <= 0) {
+            localDataSource.removeByProductId(productId)
+        } else {
+            localDataSource.updateQuantity(productId = productId, quantity = quantity)
+        }
+    }
+
+    override suspend fun removeProduct(productId: Int) = withContext(ioDispatcher) {
+        localDataSource.removeByProductId(productId)
+    }
+
+    override suspend fun clearCart() = withContext(ioDispatcher) {
+        localDataSource.clear()
+    }
+
     override fun observeCart(): Flow<List<CartItem>> =
         localDataSource.observeCartItems().map { list -> list.map { it.toDomain() } }
 }
