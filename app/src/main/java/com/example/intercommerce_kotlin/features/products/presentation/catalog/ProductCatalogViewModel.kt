@@ -3,6 +3,10 @@ package com.example.intercommerce_kotlin.features.products.presentation.catalog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.intercommerce_kotlin.core.result.AppResult
+import com.example.intercommerce_kotlin.features.cart.domain.usecase.AddProductToCartUseCase
+import com.example.intercommerce_kotlin.features.cart.domain.usecase.ObserveCartUseCase
+import com.example.intercommerce_kotlin.features.cart.domain.usecase.RemoveCartItemUseCase
+import com.example.intercommerce_kotlin.features.cart.domain.usecase.UpdateCartItemQuantityUseCase
 import com.example.intercommerce_kotlin.features.products.domain.usecase.GetProductsUseCase
 import com.example.intercommerce_kotlin.features.products.domain.usecase.SearchProductsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +20,11 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class ProductCatalogViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
-    private val searchProductsUseCase: SearchProductsUseCase
+    private val searchProductsUseCase: SearchProductsUseCase,
+    private val observeCartUseCase: ObserveCartUseCase,
+    private val addProductToCartUseCase: AddProductToCartUseCase,
+    private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
+    private val removeCartItemUseCase: RemoveCartItemUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProductCatalogUiState())
@@ -25,7 +33,54 @@ class ProductCatalogViewModel @Inject constructor(
     private var currentPage = 0
 
     init {
+        observeCart()
         onEvent(ProductCatalogUiEvent.LoadInitial)
+    }
+
+    private fun observeCart() {
+        viewModelScope.launch {
+            observeCartUseCase().collect { items ->
+                _uiState.update {
+                    it.copy(
+                        cartItemsCount = items.sumOf { item -> item.quantity },
+                        cartQuantities = items.associate { item -> item.productId to item.quantity }
+                    )
+                }
+            }
+        }
+    }
+
+    fun addProductToCart(productId: Int) {
+        val product = _uiState.value.products.firstOrNull { it.id == productId } ?: return
+        viewModelScope.launch {
+            addProductToCartUseCase(product, 1)
+        }
+    }
+
+    fun increaseProductQuantity(productId: Int) {
+        val current = _uiState.value.cartQuantities[productId] ?: 0
+        val product = _uiState.value.products.firstOrNull { it.id == productId } ?: return
+        if (current >= product.stock) return
+        if (current == 0) {
+            addProductToCart(productId)
+            return
+        }
+        viewModelScope.launch {
+            updateCartItemQuantityUseCase(productId = productId, quantity = current + 1)
+        }
+    }
+
+    fun decreaseOrRemoveProduct(productId: Int) {
+        val current = _uiState.value.cartQuantities[productId] ?: 0
+        if (current <= 1) {
+            viewModelScope.launch {
+                removeCartItemUseCase(productId)
+            }
+            return
+        }
+        viewModelScope.launch {
+            updateCartItemQuantityUseCase(productId = productId, quantity = current - 1)
+        }
     }
 
     fun onEvent(event: ProductCatalogUiEvent) {

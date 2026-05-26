@@ -4,6 +4,8 @@ import com.example.intercommerce_kotlin.features.products.domain.model.Product
 
 data class ProductCatalogUiState(
     val products: List<Product> = emptyList(),
+    val cartItemsCount: Int = 0,
+    val cartQuantities: Map<Int, Int> = emptyMap(),
     val query: String = "",
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,

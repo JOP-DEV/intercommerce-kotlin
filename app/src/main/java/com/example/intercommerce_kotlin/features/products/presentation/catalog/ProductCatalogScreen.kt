@@ -67,7 +67,9 @@ fun ProductCatalogRoute(
         gridState = gridState,
         onQueryChange = { viewModel.onEvent(ProductCatalogUiEvent.QueryChanged(it)) },
         onProductClick = onProductClick,
-        onCartClick = onCartClick
+        onCartClick = onCartClick,
+        onIncreaseClick = { productId -> viewModel.increaseProductQuantity(productId) },
+        onDecreaseOrRemoveClick = { productId -> viewModel.decreaseOrRemoveProduct(productId) }
     )
 }
 
@@ -92,7 +94,9 @@ fun ProductCatalogScreen(
     gridState: LazyGridState,
     onQueryChange: (String) -> Unit,
     onProductClick: (Int) -> Unit,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit,
+    onIncreaseClick: (Int) -> Unit,
+    onDecreaseOrRemoveClick: (Int) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -101,7 +105,10 @@ fun ProductCatalogScreen(
             .padding(horizontal = 14.dp)
     ) {
         Spacer(modifier = Modifier.height(10.dp))
-        HeaderRow(onCartClick = onCartClick)
+        HeaderRow(
+            onCartClick = onCartClick,
+            cartItemsCount = state.cartItemsCount
+        )
         Spacer(modifier = Modifier.height(14.dp))
 
         SearchRow(
@@ -156,7 +163,10 @@ fun ProductCatalogScreen(
             items(items = products, key = { it.id }) { product ->
                 ProductCatalogCard(
                     product = product,
-                    onClick = { onProductClick(product.id) }
+                    quantityInCart = state.cartQuantities[product.id] ?: 0,
+                    onClick = { onProductClick(product.id) },
+                    onIncreaseClick = { onIncreaseClick(product.id) },
+                    onDecreaseOrRemoveClick = { onDecreaseOrRemoveClick(product.id) }
                 )
             }
 
@@ -177,7 +187,7 @@ fun ProductCatalogScreen(
 }
 
 @Composable
-private fun HeaderRow(onCartClick: () -> Unit) {
+private fun HeaderRow(onCartClick: () -> Unit, cartItemsCount: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -204,15 +214,21 @@ private fun HeaderRow(onCartClick: () -> Unit) {
                     tint = Color.Black
                 )
             }
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(20.dp)
-                    .clip(CircleShape)
-                    .background(AccentOrange),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("3", color = Color.White, style = MaterialTheme.typography.labelSmall)
+            if (cartItemsCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .background(AccentOrange),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = cartItemsCount.toString(),
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
             }
         }
     }

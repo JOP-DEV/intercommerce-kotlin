@@ -13,7 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.intercommerce_kotlin.features.cart.presentation.CartScreen
+import com.example.intercommerce_kotlin.features.cart.presentation.CartRoute
 import com.example.intercommerce_kotlin.features.products.presentation.catalog.ProductCatalogRoute
 import com.example.intercommerce_kotlin.features.products.presentation.detail.ProductDetailRoute
 
@@ -125,7 +125,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                 ) + fadeOut(animationSpec = tween(220))
             }
         ) {
-            CartScreen()
+            CartRoute(onBack = { navController.popBackStack() })
         }
     }
 }

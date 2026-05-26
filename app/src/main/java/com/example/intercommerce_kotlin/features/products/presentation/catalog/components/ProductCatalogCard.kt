@@ -22,10 +22,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddShoppingCart
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,15 +46,21 @@ import kotlin.math.roundToInt
 private val AccentOrange = Color(0xFFFF5A1F)
 private val PositiveGreen = Color(0xFF71A521)
 private val CardBorder = Color(0xFFE8EAEE)
+private val CartControlHeight = 40.dp
+private val CartControlCorner = 20.dp
 
 @Composable
 fun ProductCatalogCard(
     product: Product,
+    quantityInCart: Int,
     onClick: () -> Unit,
-    onAddToCartClick: () -> Unit = {}
+    onIncreaseClick: () -> Unit = {},
+    onDecreaseOrRemoveClick: () -> Unit = {}
 ) {
     val discount = product.discountPercentage.roundToInt().coerceAtLeast(0)
     val discountedPrice = (product.price * (1 - (product.discountPercentage / 100))).coerceAtLeast(0.0)
+    val availableStock = (product.stock - quantityInCart).coerceAtLeast(0)
+    val canIncreaseQuantity = availableStock > 0
 
     Box(
         modifier = Modifier
@@ -133,7 +139,7 @@ fun ProductCatalogCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 6.dp),
-                verticalAlignment = Alignment.Bottom,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
@@ -141,34 +147,104 @@ fun ProductCatalogCard(
                     color = AccentOrange,
                     style = MaterialTheme.typography.bodySmall
                 )
-                Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = if (availableStock > 0) "● Stock: $availableStock" else "● Agotado",
+                    color = if (availableStock > 0) PositiveGreen else AccentOrange,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            if (quantityInCart <= 0) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(CartControlHeight)
+                        .clip(RoundedCornerShape(CartControlCorner))
+                        .background(if (canIncreaseQuantity) AccentOrange else Color(0xFFB8BCC5))
+                        .clickable(enabled = canIncreaseQuantity) { onIncreaseClick() }
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Agregar al carrito",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(CartControlHeight)
+                        .clip(RoundedCornerShape(CartControlCorner))
+                        .background(AccentOrange)
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(AccentOrange)
+                            .weight(1f)
+                            .clickable { onDecreaseOrRemoveClick() },
+                        contentAlignment = Alignment.Center
                     ) {
-                        IconButton(
-                            onClick = onAddToCartClick,
-                            modifier = Modifier.size(34.dp)
-                        ) {
+                        if (quantityInCart == 1) {
                             Icon(
-                                imageVector = Icons.Outlined.ShoppingCart,
-                                contentDescription = "Agregar al carrito",
-                                tint = Color.White,
-                                modifier = Modifier.size(17.dp)
+                                imageVector = Icons.Outlined.DeleteOutline,
+                                contentDescription = "Eliminar",
+                                tint = Color.White
+                            )
+                        } else {
+                            Text(
+                                text = "−",
+                                color = Color.White,
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "● Stock: ${product.stock}",
-                        color = PositiveGreen,
-                        style = MaterialTheme.typography.bodySmall
-                    )
+
+                    VerticalSeparator()
+
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = quantityInCart.toString(),
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    VerticalSeparator()
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable(enabled = canIncreaseQuantity) { onIncreaseClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "+",
+                            color = if (canIncreaseQuantity) Color.White else Color.White.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun VerticalSeparator() {
+    Box(
+        modifier = Modifier
+            .width(1.dp)
+            .height(22.dp)
+            .background(Color.White.copy(alpha = 0.55f))
+    )
 }
 
 @Composable
