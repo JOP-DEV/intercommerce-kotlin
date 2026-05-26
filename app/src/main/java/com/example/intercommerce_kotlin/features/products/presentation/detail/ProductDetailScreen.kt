@@ -33,7 +33,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -84,11 +83,10 @@ fun ProductDetailRoute(
         onBack = onBack,
         onGoToCart = onGoToCart,
         onSelectImage = viewModel::selectImage,
-        onDecreaseQuantity = viewModel::decreaseQuantity,
-        onIncreaseQuantity = viewModel::increaseQuantity,
-        onAddToCart = {
+        onDecreaseOrRemove = viewModel::decreaseOrRemoveFromCart,
+        onIncreaseOrAdd = {
             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-            viewModel.addToCart()
+            viewModel.increaseOrAddToCart()
         }
     )
 }
@@ -100,9 +98,8 @@ fun ProductDetailScreen(
     onBack: () -> Unit,
     onGoToCart: () -> Unit,
     onSelectImage: (Int) -> Unit,
-    onDecreaseQuantity: () -> Unit,
-    onIncreaseQuantity: () -> Unit,
-    onAddToCart: () -> Unit
+    onDecreaseOrRemove: () -> Unit,
+    onIncreaseOrAdd: () -> Unit
 ) {
     val product = state.product
 
@@ -130,11 +127,10 @@ fun ProductDetailScreen(
         bottomBar = {
             if (product != null) {
                 ProductDetailBottomBar(
-                    quantity = state.quantity,
-                    onDecrease = onDecreaseQuantity,
-                    onIncrease = onIncreaseQuantity,
-                    onAddToCart = onAddToCart,
-                    isAddEnabled = (product.stock > 0)
+                    quantityInCart = state.quantityInCart,
+                    canIncreaseQuantity = state.quantityInCart < product.stock,
+                    onDecreaseOrRemove = onDecreaseOrRemove,
+                    onIncreaseOrAdd = onIncreaseOrAdd
                 )
             }
         }

@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.intercommerce_kotlin.core.result.AppResult
 import com.example.intercommerce_kotlin.features.cart.domain.usecase.AddProductToCartUseCase
+import com.example.intercommerce_kotlin.features.cart.domain.usecase.ObserveCartUseCase
+import com.example.intercommerce_kotlin.features.cart.domain.usecase.RemoveCartItemUseCase
+import com.example.intercommerce_kotlin.features.cart.domain.usecase.UpdateCartItemQuantityUseCase
 import com.example.intercommerce_kotlin.features.products.domain.usecase.GetProductDetailUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -16,13 +19,32 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class ProductDetailViewModel @Inject constructor(
     private val getProductDetailUseCase: GetProductDetailUseCase,
-    private val addProductToCartUseCase: AddProductToCartUseCase
+    private val addProductToCartUseCase: AddProductToCartUseCase,
+    private val observeCartUseCase: ObserveCartUseCase,
+    private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
+    private val removeCartItemUseCase: RemoveCartItemUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProductDetailUiState())
     val uiState: StateFlow<ProductDetailUiState> = _uiState.asStateFlow()
+    private var currentProductId: Int? = null
+
+    init {
+        observeCart()
+    }
+
+    private fun observeCart() {
+        viewModelScope.launch {
+            observeCartUseCase().collect { items ->
+                val productId = currentProductId ?: return@collect
+                val quantity = items.firstOrNull { it.productId == productId }?.quantity ?: 0
+                _uiState.update { it.copy(quantityInCart = quantity) }
+            }
+        }
+    }
 
     fun loadProduct(productId: Int) {
+        currentProductId = productId
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             when (val result = getProductDetailUseCase(productId)) {
@@ -52,26 +74,32 @@ class ProductDetailViewModel @Inject constructor(
         _uiState.update { it.copy(selectedImageIndex = index) }
     }
 
-    fun increaseQuantity() {
-        _uiState.update { state ->
-            val stock = state.product?.stock ?: 0
-            val maxQuantity = stock.coerceAtLeast(1)
-            state.copy(quantity = (state.quantity + 1).coerceAtMost(maxQuantity))
+    fun increaseOrAddToCart() {
+        val product = _uiState.value.product ?: return
+        if (product.stock <= 0) return
+        val currentQuantity = _uiState.value.quantityInCart
+        if (currentQuantity >= product.stock) return
+
+        viewModelScope.launch {
+            if (currentQuantity <= 0) {
+                addProductToCartUseCase(product, 1)
+            } else {
+                updateCartItemQuantityUseCase(product.id, currentQuantity + 1)
+            }
         }
     }
 
-    fun decreaseQuantity() {
-        _uiState.update { state -> state.copy(quantity = (state.quantity - 1).coerceAtLeast(1)) }
-    }
-
-    fun addToCart() {
+    fun decreaseOrRemoveFromCart() {
         val product = _uiState.value.product ?: return
-        if (product.stock <= 0) return
-        val quantity = _uiState.value.quantity
+        val currentQuantity = _uiState.value.quantityInCart
+        if (currentQuantity <= 0) return
 
         viewModelScope.launch {
-            addProductToCartUseCase(product, quantity)
-            _uiState.update { it.copy(addedToCartMessage = "Producto agregado al carrito") }
+            if (currentQuantity == 1) {
+                removeCartItemUseCase(product.id)
+            } else {
+                updateCartItemQuantityUseCase(product.id, currentQuantity - 1)
+            }
         }
     }
 
