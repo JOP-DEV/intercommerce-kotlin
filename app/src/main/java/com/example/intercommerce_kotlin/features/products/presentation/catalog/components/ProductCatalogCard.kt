@@ -41,7 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.intercommerce_kotlin.features.products.domain.model.Product
-import kotlin.math.roundToInt
+import kotlin.math.floor
 
 private val AccentOrange = Color(0xFFFF5A1F)
 private val PositiveGreen = Color(0xFF71A521)
@@ -57,7 +57,7 @@ fun ProductCatalogCard(
     onIncreaseClick: () -> Unit = {},
     onDecreaseOrRemoveClick: () -> Unit = {}
 ) {
-    val discount = product.discountPercentage.roundToInt().coerceAtLeast(0)
+    val discount = truncateToInt(product.discountPercentage).coerceAtLeast(0)
     val discountedPrice = (product.price * (1 - (product.discountPercentage / 100))).coerceAtLeast(0.0)
     val availableStock = (product.stock - quantityInCart).coerceAtLeast(0)
     val canIncreaseQuantity = availableStock > 0
@@ -162,7 +162,7 @@ fun ProductCatalogCard(
                         .height(CartControlHeight)
                         .clip(RoundedCornerShape(CartControlCorner))
                         .background(if (canIncreaseQuantity) AccentOrange else Color(0xFFB8BCC5))
-                        .clickable(enabled = canIncreaseQuantity) { onIncreaseClick() }
+                        .clickable(enabled = canIncreaseQuantity) { onIncreaseClick() },
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -179,7 +179,7 @@ fun ProductCatalogCard(
                         .fillMaxWidth()
                         .height(CartControlHeight)
                         .clip(RoundedCornerShape(CartControlCorner))
-                        .background(AccentOrange)
+                        .background(AccentOrange),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -236,6 +236,8 @@ fun ProductCatalogCard(
         }
     }
 }
+
+private fun truncateToInt(value: Double): Int = floor(value).toInt()
 
 @Composable
 private fun VerticalSeparator() {

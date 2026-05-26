@@ -51,6 +51,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.intercommerce_kotlin.features.products.presentation.detail.components.ProductDetailBottomBar
+import kotlin.math.floor
 
 private val AccentOrange = Color(0xFFFF5A1F)
 private val PositiveGreen = Color(0xFF71A521)
@@ -239,7 +240,7 @@ fun ProductDetailScreen(
                                         .background(AccentOrange)
                                         .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
-                                    Text("-${product.discountPercentage.toInt()}%", color = Color.White)
+                                    Text("-${truncateToInt(product.discountPercentage)}%", color = Color.White)
                                 }
                             }
                             Spacer(Modifier.height(8.dp))
@@ -276,6 +277,8 @@ fun ProductDetailScreen(
         }
     }
 }
+
+private fun truncateToInt(value: Double): Int = floor(value).toInt()
 
 @Composable
 private fun DetailRow(label: String, value: String) {
