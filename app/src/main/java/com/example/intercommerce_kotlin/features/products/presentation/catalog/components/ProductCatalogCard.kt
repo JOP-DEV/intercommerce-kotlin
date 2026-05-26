@@ -310,36 +310,27 @@ fun ProductCatalogCardSkeleton() {
         Spacer(modifier = Modifier.height(10.dp))
         Box(
             modifier = Modifier
-                .fillMaxWidth(0.45f)
-                .height(18.dp)
+                .fillMaxWidth(0.42f)
+                .height(20.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(shimmerColor)
         )
-        Spacer(modifier = Modifier.height(6.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.35f)
-                    .height(14.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(shimmerColor)
-            )
-            Column(horizontalAlignment = Alignment.End) {
-                Box(
-                    modifier = Modifier
-                        .size(34.dp)
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(shimmerColor)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Box(
-                    modifier = Modifier
-                        .width(62.dp)
-                        .height(14.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(shimmerColor)
-                )
-            }
-        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.30f)
+                .height(14.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(shimmerColor)
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(CartControlHeight)
+                .clip(RoundedCornerShape(CartControlCorner))
+                .background(shimmerColor),
+            verticalAlignment = Alignment.CenterVertically
+        ) {}
     }
 }
