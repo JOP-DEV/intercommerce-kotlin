@@ -67,17 +67,22 @@ class ProductRepositoryImpl @Inject constructor(
         }
 
     override suspend fun searchProducts(query: String): AppResult<List<Product>> = withContext(ioDispatcher) {
+        val normalizedQuery = query.trim()
         try {
             val remoteResponse = remoteDataSource.searchProducts(query)
             Log.d(
                 TAG,
                 "GET /products/search success -> query='$query', remoteItems=${remoteResponse.products.size}"
             )
-            val entities = remoteResponse.products.map { it.toEntity(System.currentTimeMillis()) }
+            val entities = remoteResponse.products
+                .filter { dto ->
+                    dto.title.contains(normalizedQuery, ignoreCase = true)
+                }
+                .map { it.toEntity(System.currentTimeMillis()) }
             localDataSource.upsertProducts(entities)
             AppResult.Success(entities.map { it.toDomain() })
         } catch (_: Throwable) {
-            val cached = localDataSource.searchProducts(query)
+            val cached = localDataSource.searchProducts(normalizedQuery)
             Log.d(TAG, "GET /products/search fallback -> query='$query', cachedItems=${cached.size}")
             if (cached.isNotEmpty()) {
                 AppResult.Success(cached.map { it.toDomain() })
