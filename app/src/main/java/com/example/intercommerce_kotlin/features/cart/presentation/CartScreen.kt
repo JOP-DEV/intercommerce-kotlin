@@ -82,28 +82,6 @@ fun CartScreen(
                     }
                     Text("Carrito", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 }
-                Box {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Outlined.ShoppingCart,
-                            contentDescription = "Carrito",
-                            tint = Color.Black
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .size(20.dp)
-                            .background(AccentOrange, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = state.items.size.toString(),
-                            color = Color.White,
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-                }
             }
         }
     ) { innerPadding ->
