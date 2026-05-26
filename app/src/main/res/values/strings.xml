@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">intercommerce-kotlin</string>
-    <string name="offline_with_cache">Sin conexión. Mostrando información guardada.</string>
-    <string name="offline_without_cache">Sin conexión. Conéctate para cargar los productos.</string>
+    <string name="catalog_offline_banner">Modo offline</string>
+    <string name="offline_global">Sin conexión a internet.</string>
     <string name="connection_restored">Conexión restablecida.</string>
     <string name="retry">Reintentar</string>
     <string name="catalog_empty_search">No se encontraron productos</string>

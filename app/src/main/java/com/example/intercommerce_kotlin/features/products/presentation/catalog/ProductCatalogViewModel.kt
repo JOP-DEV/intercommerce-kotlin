@@ -15,11 +15,8 @@ import com.example.intercommerce_kotlin.features.products.domain.usecase.SearchP
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,12 +34,9 @@ class ProductCatalogViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(ProductCatalogUiState())
     val uiState: StateFlow<ProductCatalogUiState> = _uiState.asStateFlow()
-    private val _uiEffect = MutableSharedFlow<ProductCatalogUiEffect>()
-    val uiEffect: SharedFlow<ProductCatalogUiEffect> = _uiEffect.asSharedFlow()
 
     private var currentPage = 0
     private var previousConnectionStatus: ConnectionStatus? = null
-    private var pendingConnectionRestoredMessage = false
 
     init {
         observeCart()
@@ -60,15 +54,7 @@ class ProductCatalogViewModel @Inject constructor(
 
                     if (previous == null) return@collect
 
-                    if (previous == ConnectionStatus.Available && status == ConnectionStatus.Unavailable) {
-                        val message = if (_uiState.value.products.isNotEmpty()) {
-                            R.string.offline_with_cache
-                        } else {
-                            R.string.offline_without_cache
-                        }
-                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(message))
-                    } else if (previous == ConnectionStatus.Unavailable && status == ConnectionStatus.Available) {
-                        pendingConnectionRestoredMessage = true
+                    if (previous == ConnectionStatus.Unavailable && status == ConnectionStatus.Available) {
                         retryCurrentRequest()
                     }
                 }
@@ -158,10 +144,6 @@ class ProductCatalogViewModel @Inject constructor(
                             endReached = result.data.endReached
                         )
                     }
-                    if (result.data.isOffline) {
-                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.offline_with_cache))
-                    }
-                    emitConnectionRestoredIfNeeded()
                 }
                 is AppResult.Error -> {
                     _uiState.update {
@@ -169,9 +151,6 @@ class ProductCatalogViewModel @Inject constructor(
                             isLoading = false,
                             errorMessageRes = R.string.catalog_error_load_products
                         )
-                    }
-                    if (!connectivityObserver.isConnected()) {
-                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.offline_without_cache))
                     }
                 }
             }
@@ -196,10 +175,6 @@ class ProductCatalogViewModel @Inject constructor(
                             endReached = result.data.endReached
                         )
                     }
-                    if (result.data.isOffline) {
-                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.offline_with_cache))
-                    }
-                    emitConnectionRestoredIfNeeded()
                 }
                 is AppResult.Error -> {
                     _uiState.update {
@@ -236,10 +211,6 @@ class ProductCatalogViewModel @Inject constructor(
                             endReached = true
                         )
                     }
-                    if (!connectivityObserver.isConnected()) {
-                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.offline_with_cache))
-                    }
-                    emitConnectionRestoredIfNeeded()
                 }
                 is AppResult.Error -> {
                     _uiState.update {
@@ -248,19 +219,9 @@ class ProductCatalogViewModel @Inject constructor(
                             errorMessageRes = R.string.catalog_error_search
                         )
                     }
-                    if (!connectivityObserver.isConnected()) {
-                        _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.offline_without_cache))
-                    }
                 }
             }
         }
     }
 
-    private fun emitConnectionRestoredIfNeeded() {
-        if (!pendingConnectionRestoredMessage) return
-        pendingConnectionRestoredMessage = false
-        viewModelScope.launch {
-            _uiEffect.emit(ProductCatalogUiEffect.ShowToast(R.string.connection_restored))
-        }
-    }
 }

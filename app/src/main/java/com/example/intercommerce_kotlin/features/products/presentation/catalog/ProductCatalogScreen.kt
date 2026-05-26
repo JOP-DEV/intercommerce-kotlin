@@ -1,6 +1,5 @@
 package com.example.intercommerce_kotlin.features.products.presentation.catalog
 
-import android.widget.Toast
 import androidx.compose.material3.Button
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,11 +34,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,20 +62,9 @@ fun ProductCatalogRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val gridState = rememberLazyGridState()
-    val context = LocalContext.current
 
     HandleLoadMore(gridState = gridState) {
         viewModel.onEvent(ProductCatalogUiEvent.LoadMore)
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.uiEffect.collect { effect ->
-            when (effect) {
-                is ProductCatalogUiEffect.ShowToast -> {
-                    Toast.makeText(context, context.getString(effect.messageRes), Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
     }
 
     ProductCatalogScreen(
@@ -179,6 +166,17 @@ fun ProductCatalogScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                if (state.isOffline) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Text(
+                            text = stringResource(id = R.string.catalog_offline_banner),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        )
+                    }
+                }
+
                 items(items = products, key = { it.id }) { product ->
                     ProductCatalogCard(
                         product = product,
