@@ -266,7 +266,6 @@ fun ProductDetailScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
                             ) {
-                                Icon(Icons.Outlined.Share, contentDescription = stringResource(id = R.string.cd_share))
                             }
                         }
                     }
