@@ -37,9 +37,18 @@ class ProductDetailViewModel @Inject constructor(
     private fun observeCart() {
         viewModelScope.launch {
             observeCartUseCase().collect { items ->
-                val productId = currentProductId ?: return@collect
-                val quantity = items.firstOrNull { it.productId == productId }?.quantity ?: 0
-                _uiState.update { it.copy(quantityInCart = quantity) }
+                val productId = currentProductId
+                val quantity = if (productId != null) {
+                    items.firstOrNull { it.productId == productId }?.quantity ?: 0
+                } else {
+                    0
+                }
+                _uiState.update {
+                    it.copy(
+                        quantityInCart = quantity,
+                        cartItemsCount = items.sumOf { item -> item.quantity }
+                    )
+                }
             }
         }
     }

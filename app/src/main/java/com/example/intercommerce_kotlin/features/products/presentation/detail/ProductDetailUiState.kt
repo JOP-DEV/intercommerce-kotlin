@@ -8,6 +8,7 @@ data class ProductDetailUiState(
     val product: Product? = null,
     val selectedImageIndex: Int = 0,
     val quantityInCart: Int = 0,
+    val cartItemsCount: Int = 0,
     val isOffline: Boolean = false,
     @StringRes val errorMessageRes: Int? = null,
     val addedToCartMessage: String? = null

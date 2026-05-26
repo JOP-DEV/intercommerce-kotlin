@@ -125,8 +125,26 @@ fun ProductDetailScreen(
                 IconButton(onClick = onBack) {
                     Icon(Icons.Outlined.ArrowBack, contentDescription = stringResource(id = R.string.cd_back))
                 }
-                IconButton(onClick = onGoToCart) {
-                    Icon(Icons.Outlined.ShoppingCart, contentDescription = stringResource(id = R.string.cd_cart))
+                Box {
+                    IconButton(onClick = onGoToCart) {
+                        Icon(Icons.Outlined.ShoppingCart, contentDescription = stringResource(id = R.string.cd_cart))
+                    }
+                    if (state.cartItemsCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .size(20.dp)
+                                .clip(CircleShape)
+                                .background(AccentOrange),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = state.cartItemsCount.toString(),
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
                 }
             }
         },
