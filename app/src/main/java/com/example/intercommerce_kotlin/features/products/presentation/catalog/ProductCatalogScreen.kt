@@ -28,11 +28,13 @@ import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -161,41 +163,62 @@ fun ProductCatalogScreen(
         }
 
         val products = state.products
-        if (state.isLoading && products.isEmpty()) {
+        if (state.isLoading) {
             ShimmerGrid()
             return
         }
 
-        LazyVerticalGrid(
-            state = gridState,
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        CatalogPullToRefresh(
+            isRefreshing = false,
+            onRefresh = onRetryClick
         ) {
-            items(items = products, key = { it.id }) { product ->
-                ProductCatalogCard(
-                    product = product,
-                    quantityInCart = state.cartQuantities[product.id] ?: 0,
-                    onClick = { onProductClick(product.id) },
-                    onIncreaseClick = { onIncreaseClick(product.id) },
-                    onDecreaseOrRemoveClick = { onDecreaseOrRemoveClick(product.id) }
-                )
-            }
+            LazyVerticalGrid(
+                state = gridState,
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(items = products, key = { it.id }) { product ->
+                    ProductCatalogCard(
+                        product = product,
+                        quantityInCart = state.cartQuantities[product.id] ?: 0,
+                        onClick = { onProductClick(product.id) },
+                        onIncreaseClick = { onIncreaseClick(product.id) },
+                        onDecreaseOrRemoveClick = { onDecreaseOrRemoveClick(product.id) }
+                    )
+                }
 
-            if (state.isLoadingMore) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                if (state.isLoadingMore) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CatalogPullToRefresh(
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    PullToRefreshBox(
+        modifier = Modifier.fillMaxSize(),
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh
+    ) {
+        content()
     }
 }
 
