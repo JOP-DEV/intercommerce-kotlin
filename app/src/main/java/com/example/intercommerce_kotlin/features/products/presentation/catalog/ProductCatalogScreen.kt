@@ -231,13 +231,17 @@ private fun HeaderRow(onCartClick: () -> Unit, cartItemsCount: Int) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = {}) {
-                Icon(imageVector = Icons.Outlined.Menu, contentDescription = stringResource(id = R.string.cd_menu))
-            }
             Column {
                 Text(
                     text = stringResource(id = R.string.hello_short),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF646B77)
+                )
+                Text(
+                    text = "Jhon",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF646B77)
                 )
             }

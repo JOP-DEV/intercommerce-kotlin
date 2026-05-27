@@ -44,6 +44,7 @@ import com.example.intercommerce_kotlin.features.cart.presentation.CartRoute
 import com.example.intercommerce_kotlin.features.products.presentation.catalog.ProductCatalogRoute
 import com.example.intercommerce_kotlin.features.products.presentation.detail.ProductDetailRoute
 import com.example.intercommerce_kotlin.features.products.presentation.favorites.FavoritesRoute
+import com.example.intercommerce_kotlin.features.profile.presentation.ProfileRoute
 
 @Composable
 fun AppNavHost(modifier: Modifier = Modifier) {
@@ -166,7 +167,11 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             }
 
             composable(route = AppDestination.Profile.route) {
-                PlaceholderScreen(label = "Perfil")
+                ProfileRoute(
+                    onCartClick = {
+                        navController.navigate(AppDestination.Cart.route)
+                    }
+                )
             }
 
             composable(
@@ -248,10 +253,3 @@ private data class BottomNavItem(
     val label: String,
     val icon: androidx.compose.ui.graphics.vector.ImageVector
 )
-
-@Composable
-private fun PlaceholderScreen(label: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = label)
-    }
-}
