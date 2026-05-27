@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavType
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -89,7 +90,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable {
-                                        navController.navigate(item.route) {
+                                        navController.navigateBottomTab(item.route) {
                                             popUpTo(AppDestination.Catalog.route) { saveState = true }
                                             launchSingleTop = true
                                             restoreState = true
@@ -147,10 +148,10 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             ) {
                 ProductCatalogRoute(
                     onProductClick = { productId ->
-                        navController.navigate(AppDestination.ProductDetail.createRoute(productId))
+                        navController.navigateToProductDetail(productId)
                     },
                     onCartClick = {
-                        navController.navigate(AppDestination.Cart.route)
+                        navController.navigateToCart()
                     }
                 )
             }
@@ -158,10 +159,10 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             composable(route = AppDestination.Favorites.route) {
                 FavoritesRoute(
                     onProductClick = { productId ->
-                        navController.navigate(AppDestination.ProductDetail.createRoute(productId))
+                        navController.navigateToProductDetail(productId)
                     },
                     onCartClick = {
-                        navController.navigate(AppDestination.Cart.route)
+                        navController.navigateToCart()
                     }
                 )
             }
@@ -169,7 +170,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             composable(route = AppDestination.Profile.route) {
                 ProfileRoute(
                     onCartClick = {
-                        navController.navigate(AppDestination.Cart.route)
+                        navController.navigateToCart()
                     }
                 )
             }
@@ -206,12 +207,11 @@ fun AppNavHost(modifier: Modifier = Modifier) {
                     ) + fadeOut(animationSpec = tween(220))
                 }
             ) { backStackEntry ->
-                val productId =
-                    backStackEntry.arguments?.getInt(AppDestination.ProductDetail.ARG_PRODUCT_ID) ?: return@composable
+                val args = AppDestination.ProductDetail.parse(backStackEntry)
                 ProductDetailRoute(
-                    productId = productId,
+                    productId = args.productId,
                     onBack = { navController.popBackStack() },
-                    onGoToCart = { navController.navigate(AppDestination.Cart.route) }
+                    onGoToCart = { navController.navigateToCart() }
                 )
             }
 
@@ -246,6 +246,13 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+private fun NavHostController.navigateBottomTab(
+    route: String,
+    builder: androidx.navigation.NavOptionsBuilder.() -> Unit
+) {
+    navigate(route, builder)
 }
 
 private data class BottomNavItem(
