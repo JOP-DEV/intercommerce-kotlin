@@ -74,6 +74,7 @@ fun ProductCatalogRoute(
         onRetryClick = { viewModel.onEvent(ProductCatalogUiEvent.Retry) },
         onProductClick = onProductClick,
         onCartClick = onCartClick,
+        onFavoriteClick = { productId -> viewModel.onFavoriteToggle(productId) },
         onIncreaseClick = { productId -> viewModel.increaseProductQuantity(productId) },
         onDecreaseOrRemoveClick = { productId -> viewModel.decreaseOrRemoveProduct(productId) }
     )
@@ -102,6 +103,7 @@ fun ProductCatalogScreen(
     onRetryClick: () -> Unit,
     onProductClick: (Int) -> Unit,
     onCartClick: () -> Unit,
+    onFavoriteClick: (Int) -> Unit,
     onIncreaseClick: (Int) -> Unit,
     onDecreaseOrRemoveClick: (Int) -> Unit
 ) {
@@ -182,6 +184,7 @@ fun ProductCatalogScreen(
                         product = product,
                         quantityInCart = state.cartQuantities[product.id] ?: 0,
                         onClick = { onProductClick(product.id) },
+                        onFavoriteClick = { onFavoriteClick(product.id) },
                         onIncreaseClick = { onIncreaseClick(product.id) },
                         onDecreaseOrRemoveClick = { onDecreaseOrRemoveClick(product.id) }
                     )

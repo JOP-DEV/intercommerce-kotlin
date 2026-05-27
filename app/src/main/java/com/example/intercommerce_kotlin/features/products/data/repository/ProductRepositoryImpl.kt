@@ -12,6 +12,8 @@ import com.example.intercommerce_kotlin.features.products.domain.model.PagedProd
 import com.example.intercommerce_kotlin.features.products.domain.model.Product
 import com.example.intercommerce_kotlin.features.products.domain.repository.ProductRepository
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import retrofit2.HttpException
@@ -37,7 +39,12 @@ class ProductRepositoryImpl @Inject constructor(
                     TAG,
                     "GET /products success -> page=$page, limit=$limit, skip=$skip, total=${remoteResponse.total}, items=${remoteResponse.products.size}"
                 )
-                localDataSource.upsertProducts(remoteResponse.products.map { it.toEntity(System.currentTimeMillis()) })
+                val now = System.currentTimeMillis()
+                val entities = remoteResponse.products.map { dto ->
+                    val isFavorite = localDataSource.getFavoriteStatus(dto.id) ?: false
+                    dto.toEntity(now = now, isFavorite = isFavorite)
+                }
+                localDataSource.upsertProducts(entities)
 
                 val localPage = localDataSource.getPagedProducts(limit = limit, offset = skip)
                 Log.d(TAG, "Local page mapped -> page=$page, items=${localPage.size}")
@@ -78,7 +85,10 @@ class ProductRepositoryImpl @Inject constructor(
                 .filter { dto ->
                     dto.title.contains(normalizedQuery, ignoreCase = true)
                 }
-                .map { it.toEntity(System.currentTimeMillis()) }
+                .map { dto ->
+                    val isFavorite = localDataSource.getFavoriteStatus(dto.id) ?: false
+                    dto.toEntity(now = System.currentTimeMillis(), isFavorite = isFavorite)
+                }
             localDataSource.upsertProducts(entities)
             AppResult.Success(entities.map { it.toDomain() })
         } catch (_: Throwable) {
@@ -97,7 +107,10 @@ class ProductRepositoryImpl @Inject constructor(
         try {
             val remote = remoteDataSource.getProductDetail(id)
             Log.d(TAG, "GET /products/$id success -> title='${remote.title}'")
-            val entity = remote.toEntity(System.currentTimeMillis())
+            val entity = remote.toEntity(
+                now = System.currentTimeMillis(),
+                isFavorite = localDataSource.getFavoriteStatus(id) ?: false
+            )
             localDataSource.upsertProducts(listOf(entity))
             AppResult.Success(entity.toDomain())
         } catch (throwable: Throwable) {
@@ -109,6 +122,17 @@ class ProductRepositoryImpl @Inject constructor(
             }
         }
     }
+
+    override suspend fun updateFavorite(productId: Int, isFavorite: Boolean) {
+        withContext(ioDispatcher) {
+            localDataSource.updateFavorite(productId, isFavorite)
+        }
+    }
+
+    override fun observeFavoriteProducts(): Flow<List<Product>> =
+        localDataSource.observeFavoriteProducts().map { entities ->
+            entities.map { it.toDomain() }
+        }
 
     private fun Throwable.toAppError(): AppError = when (this) {
         is SocketTimeoutException -> AppError.Timeout

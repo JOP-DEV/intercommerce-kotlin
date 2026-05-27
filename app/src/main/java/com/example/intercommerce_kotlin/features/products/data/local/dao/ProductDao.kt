@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.intercommerce_kotlin.features.products.data.local.entity.ProductEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProductDao {
@@ -22,4 +23,13 @@ interface ProductDao {
 
     @Query("SELECT COUNT(id) FROM products")
     suspend fun countProducts(): Int
+
+    @Query("UPDATE products SET isFavorite = :isFavorite WHERE id = :productId")
+    suspend fun updateFavorite(productId: Int, isFavorite: Boolean)
+
+    @Query("SELECT isFavorite FROM products WHERE id = :productId LIMIT 1")
+    suspend fun getFavoriteStatus(productId: Int): Boolean?
+
+    @Query("SELECT * FROM products WHERE isFavorite = 1 ORDER BY title")
+    fun observeFavoriteProducts(): Flow<List<ProductEntity>>
 }

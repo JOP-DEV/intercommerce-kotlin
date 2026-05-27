@@ -4,7 +4,10 @@ import com.example.intercommerce_kotlin.features.products.data.local.entity.Prod
 import com.example.intercommerce_kotlin.features.products.data.remote.dto.ProductDto
 import com.example.intercommerce_kotlin.features.products.domain.model.Product
 
-fun ProductDto.toEntity(now: Long): ProductEntity = ProductEntity(
+fun ProductDto.toEntity(
+    now: Long,
+    isFavorite: Boolean = false
+): ProductEntity = ProductEntity(
     id = id,
     title = title,
     description = description,
@@ -14,6 +17,7 @@ fun ProductDto.toEntity(now: Long): ProductEntity = ProductEntity(
     stock = stock,
     brand = brand,
     category = category,
+    isFavorite = isFavorite,
     thumbnail = thumbnail,
     images = images.joinToString(separator = "|"),
     lastUpdatedAt = now
@@ -29,6 +33,7 @@ fun ProductEntity.toDomain(): Product = Product(
     stock = stock,
     brand = brand,
     category = category,
+    isFavorite = isFavorite,
     thumbnail = thumbnail,
     images = if (images.isBlank()) emptyList() else images.split("|")
 )

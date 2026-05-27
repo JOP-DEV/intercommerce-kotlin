@@ -28,6 +28,8 @@
     <string name="catalog_error_load_products">No pudimos cargar los productos. Revisa tu conexión e inténtalo nuevamente.</string>
     <string name="catalog_error_load_more">No pudimos cargar más productos.</string>
     <string name="catalog_error_search">No encontramos resultados para tu búsqueda.</string>
+    <string name="favorites_title">Favoritos</string>
+    <string name="favorites_empty">No tienes productos en favoritos</string>
     <string name="detail_error_load_product">No pudimos cargar el detalle del producto.</string>
     <string name="cart_title">Carrito</string>
     <string name="cart_empty">Tu carrito está vacío</string>

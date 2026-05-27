@@ -11,6 +11,7 @@ import com.example.intercommerce_kotlin.features.cart.domain.usecase.ObserveCart
 import com.example.intercommerce_kotlin.features.cart.domain.usecase.RemoveCartItemUseCase
 import com.example.intercommerce_kotlin.features.cart.domain.usecase.UpdateCartItemQuantityUseCase
 import com.example.intercommerce_kotlin.features.products.domain.usecase.GetProductsUseCase
+import com.example.intercommerce_kotlin.features.products.domain.usecase.UpdateProductFavoriteUseCase
 import com.example.intercommerce_kotlin.features.products.domain.usecase.SearchProductsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -29,7 +30,8 @@ class ProductCatalogViewModel @Inject constructor(
     private val observeCartUseCase: ObserveCartUseCase,
     private val addProductToCartUseCase: AddProductToCartUseCase,
     private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
-    private val removeCartItemUseCase: RemoveCartItemUseCase
+    private val removeCartItemUseCase: RemoveCartItemUseCase,
+    private val updateProductFavoriteUseCase: UpdateProductFavoriteUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProductCatalogUiState())
@@ -104,6 +106,21 @@ class ProductCatalogViewModel @Inject constructor(
         }
         viewModelScope.launch {
             updateCartItemQuantityUseCase(productId = productId, quantity = current - 1)
+        }
+    }
+
+    fun onFavoriteToggle(productId: Int) {
+        val product = _uiState.value.products.firstOrNull { it.id == productId } ?: return
+        val nextValue = !product.isFavorite
+        viewModelScope.launch {
+            updateProductFavoriteUseCase(productId, nextValue)
+            _uiState.update { state ->
+                state.copy(
+                    products = state.products.map {
+                        if (it.id == productId) it.copy(isFavorite = nextValue) else it
+                    }
+                )
+            }
         }
     }
 

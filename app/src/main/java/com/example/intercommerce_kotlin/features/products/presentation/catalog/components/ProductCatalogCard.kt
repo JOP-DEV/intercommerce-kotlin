@@ -23,8 +23,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddShoppingCart
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +60,7 @@ fun ProductCatalogCard(
     product: Product,
     quantityInCart: Int,
     onClick: () -> Unit,
+    onFavoriteClick: () -> Unit = {},
     onIncreaseClick: () -> Unit = {},
     onDecreaseOrRemoveClick: () -> Unit = {}
 ) {
@@ -95,10 +96,12 @@ fun ProductCatalogCard(
                 }
 
                 Icon(
-                    modifier = Modifier.align(Alignment.TopEnd),
-                    imageVector = Icons.Outlined.FavoriteBorder,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .clickable(onClick = onFavoriteClick),
+                    imageVector = if (product.isFavorite) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = stringResource(id = R.string.cd_favorite),
-                    tint = Color(0xFF44474F)
+                    tint = if (product.isFavorite) AccentOrange else Color(0xFF44474F)
                 )
             }
 

@@ -9,7 +9,7 @@ import com.example.intercommerce_kotlin.features.products.data.local.entity.Prod
 
 @Database(
     entities = [ProductEntity::class, CartItemEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

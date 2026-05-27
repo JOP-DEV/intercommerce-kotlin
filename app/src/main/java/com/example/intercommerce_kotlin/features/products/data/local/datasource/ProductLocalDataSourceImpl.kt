@@ -2,6 +2,7 @@ package com.example.intercommerce_kotlin.features.products.data.local.datasource
 
 import com.example.intercommerce_kotlin.features.products.data.local.dao.ProductDao
 import com.example.intercommerce_kotlin.features.products.data.local.entity.ProductEntity
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class ProductLocalDataSourceImpl @Inject constructor(
@@ -19,4 +20,12 @@ class ProductLocalDataSourceImpl @Inject constructor(
     override suspend fun getProductById(id: Int): ProductEntity? = dao.getProductById(id)
 
     override suspend fun countProducts(): Int = dao.countProducts()
+
+    override suspend fun updateFavorite(productId: Int, isFavorite: Boolean) {
+        dao.updateFavorite(productId, isFavorite)
+    }
+
+    override suspend fun getFavoriteStatus(productId: Int): Boolean? = dao.getFavoriteStatus(productId)
+
+    override fun observeFavoriteProducts(): Flow<List<ProductEntity>> = dao.observeFavoriteProducts()
 }

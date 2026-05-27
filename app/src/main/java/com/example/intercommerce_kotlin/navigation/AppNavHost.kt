@@ -43,6 +43,7 @@ import androidx.navigation.navArgument
 import com.example.intercommerce_kotlin.features.cart.presentation.CartRoute
 import com.example.intercommerce_kotlin.features.products.presentation.catalog.ProductCatalogRoute
 import com.example.intercommerce_kotlin.features.products.presentation.detail.ProductDetailRoute
+import com.example.intercommerce_kotlin.features.products.presentation.favorites.FavoritesRoute
 
 @Composable
 fun AppNavHost(modifier: Modifier = Modifier) {
@@ -154,7 +155,14 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             }
 
             composable(route = AppDestination.Favorites.route) {
-                PlaceholderScreen(label = "Favoritos")
+                FavoritesRoute(
+                    onProductClick = { productId ->
+                        navController.navigate(AppDestination.ProductDetail.createRoute(productId))
+                    },
+                    onCartClick = {
+                        navController.navigate(AppDestination.Cart.route)
+                    }
+                )
             }
 
             composable(route = AppDestination.Profile.route) {
