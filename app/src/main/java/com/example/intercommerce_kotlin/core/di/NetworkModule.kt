@@ -1,5 +1,6 @@
 package com.example.intercommerce_kotlin.core.di
 
+import com.example.intercommerce_kotlin.BuildConfig
 import com.example.intercommerce_kotlin.core.network.NetworkConstants
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -29,7 +30,11 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         val logger = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
         }
         return OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
