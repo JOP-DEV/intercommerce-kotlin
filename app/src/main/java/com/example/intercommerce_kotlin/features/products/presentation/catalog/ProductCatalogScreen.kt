@@ -16,10 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,9 +33,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,10 +43,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.intercommerce_kotlin.R
+import com.example.intercommerce_kotlin.features.products.domain.model.Product
 import com.example.intercommerce_kotlin.features.products.presentation.catalog.components.ProductCatalogCard
 import com.example.intercommerce_kotlin.features.products.presentation.catalog.components.ProductCatalogCardSkeleton
-import kotlinx.coroutines.flow.distinctUntilChanged
 
 private val AccentOrange = Color(0xFFFF5A1F)
 
@@ -61,50 +59,31 @@ fun ProductCatalogRoute(
     viewModel: ProductCatalogViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val gridState = rememberLazyGridState()
-
-    HandleLoadMore(gridState = gridState) {
-        viewModel.onEvent(ProductCatalogUiEvent.LoadMore)
-    }
+    val pagedProducts = viewModel.pagedProducts.collectAsLazyPagingItems()
 
     ProductCatalogScreen(
         state = state,
-        gridState = gridState,
+        pagedProducts = pagedProducts,
         onQueryChange = { viewModel.onEvent(ProductCatalogUiEvent.QueryChanged(it)) },
         onRetryClick = { viewModel.onEvent(ProductCatalogUiEvent.Retry) },
         onProductClick = onProductClick,
         onCartClick = onCartClick,
-        onFavoriteClick = { productId -> viewModel.onFavoriteToggle(productId) },
-        onIncreaseClick = { productId -> viewModel.increaseProductQuantity(productId) },
+        onFavoriteClick = { product -> viewModel.onFavoriteToggle(product) },
+        onIncreaseClick = { product -> viewModel.increaseProductQuantity(product) },
         onDecreaseOrRemoveClick = { productId -> viewModel.decreaseOrRemoveProduct(productId) }
     )
 }
 
 @Composable
-private fun HandleLoadMore(gridState: LazyGridState, onLoadMore: () -> Unit) {
-    LaunchedEffect(gridState) {
-        snapshotFlow { gridState.layoutInfo }
-            .distinctUntilChanged()
-            .collect { layoutInfo ->
-                val totalItems = layoutInfo.totalItemsCount
-                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                if (totalItems > 0 && lastVisibleItem >= totalItems - 4) {
-                    onLoadMore()
-                }
-            }
-    }
-}
-
-@Composable
 fun ProductCatalogScreen(
     state: ProductCatalogUiState,
-    gridState: LazyGridState,
+    pagedProducts: androidx.paging.compose.LazyPagingItems<com.example.intercommerce_kotlin.features.products.domain.model.Product>,
     onQueryChange: (String) -> Unit,
     onRetryClick: () -> Unit,
     onProductClick: (Int) -> Unit,
     onCartClick: () -> Unit,
-    onFavoriteClick: (Int) -> Unit,
-    onIncreaseClick: (Int) -> Unit,
+    onFavoriteClick: (Product) -> Unit,
+    onIncreaseClick: (Product) -> Unit,
     onDecreaseOrRemoveClick: (Int) -> Unit
 ) {
     Column(
@@ -127,7 +106,11 @@ fun ProductCatalogScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (state.errorMessageRes != null && state.products.isEmpty()) {
+        val isPagedMode = state.query.isBlank()
+        val isInitialPagedLoading = isPagedMode && pagedProducts.loadState.refresh is LoadState.Loading
+        val pagedError = if (isPagedMode) pagedProducts.loadState.refresh as? LoadState.Error else null
+
+        if (state.errorMessageRes != null && state.products.isEmpty() && !isPagedMode) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = stringResource(id = state.errorMessageRes))
@@ -140,7 +123,7 @@ fun ProductCatalogScreen(
             return
         }
 
-        if (state.query.isNotBlank() && state.products.isEmpty() && !state.isLoading) {
+        if (!isPagedMode && state.products.isEmpty() && !state.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = androidx.compose.ui.res.stringResource(id = R.string.catalog_empty_search),
@@ -151,18 +134,31 @@ fun ProductCatalogScreen(
             return
         }
 
-        val products = state.products
-        if (state.isLoading) {
+        if (isInitialPagedLoading || state.isLoading) {
             ShimmerGrid()
             return
         }
 
+        if (pagedError != null && isPagedMode && pagedProducts.itemCount == 0) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = stringResource(id = R.string.catalog_error_load_products))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { pagedProducts.retry() }) {
+                        Text(text = stringResource(id = R.string.retry))
+                    }
+                }
+            }
+            return
+        }
+
         CatalogPullToRefresh(
-            isRefreshing = false,
-            onRefresh = onRetryClick
+            isRefreshing = isPagedMode && pagedProducts.loadState.refresh is LoadState.Loading,
+            onRefresh = {
+                if (isPagedMode) pagedProducts.refresh() else onRetryClick()
+            }
         ) {
             LazyVerticalGrid(
-                state = gridState,
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -179,18 +175,32 @@ fun ProductCatalogScreen(
                     }
                 }
 
-                items(items = products, key = { it.id }) { product ->
-                    ProductCatalogCard(
-                        product = product,
-                        quantityInCart = state.cartQuantities[product.id] ?: 0,
-                        onClick = { onProductClick(product.id) },
-                        onFavoriteClick = { onFavoriteClick(product.id) },
-                        onIncreaseClick = { onIncreaseClick(product.id) },
-                        onDecreaseOrRemoveClick = { onDecreaseOrRemoveClick(product.id) }
-                    )
+                if (isPagedMode) {
+                    items(count = pagedProducts.itemCount) { index ->
+                        val product = pagedProducts[index] ?: return@items
+                        ProductCatalogCard(
+                            product = product,
+                            quantityInCart = state.cartQuantities[product.id] ?: 0,
+                            onClick = { onProductClick(product.id) },
+                            onFavoriteClick = { onFavoriteClick(product) },
+                            onIncreaseClick = { onIncreaseClick(product) },
+                            onDecreaseOrRemoveClick = { onDecreaseOrRemoveClick(product.id) }
+                        )
+                    }
+                } else {
+                    items(items = state.products, key = { it.id }) { product ->
+                        ProductCatalogCard(
+                            product = product,
+                            quantityInCart = state.cartQuantities[product.id] ?: 0,
+                            onClick = { onProductClick(product.id) },
+                            onFavoriteClick = { onFavoriteClick(product) },
+                            onIncreaseClick = { onIncreaseClick(product) },
+                            onDecreaseOrRemoveClick = { onDecreaseOrRemoveClick(product.id) }
+                        )
+                    }
                 }
 
-                if (state.isLoadingMore) {
+                if (isPagedMode && pagedProducts.loadState.append is LoadState.Loading) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         Row(
                             modifier = Modifier

@@ -2,7 +2,12 @@ package com.example.intercommerce_kotlin.features.products.presentation.catalog
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.intercommerce_kotlin.R
+import com.example.intercommerce_kotlin.core.network.NetworkConstants
 import com.example.intercommerce_kotlin.core.network.ConnectionStatus
 import com.example.intercommerce_kotlin.core.network.ConnectivityObserver
 import com.example.intercommerce_kotlin.core.result.AppResult
@@ -11,11 +16,13 @@ import com.example.intercommerce_kotlin.features.cart.domain.usecase.ObserveCart
 import com.example.intercommerce_kotlin.features.cart.domain.usecase.RemoveCartItemUseCase
 import com.example.intercommerce_kotlin.features.cart.domain.usecase.UpdateCartItemQuantityUseCase
 import com.example.intercommerce_kotlin.features.products.domain.usecase.GetProductsUseCase
+import com.example.intercommerce_kotlin.features.products.domain.model.Product
 import com.example.intercommerce_kotlin.features.products.domain.usecase.UpdateProductFavoriteUseCase
 import com.example.intercommerce_kotlin.features.products.domain.usecase.SearchProductsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -37,13 +44,29 @@ class ProductCatalogViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ProductCatalogUiState())
     val uiState: StateFlow<ProductCatalogUiState> = _uiState.asStateFlow()
 
-    private var currentPage = 0
     private var previousConnectionStatus: ConnectionStatus? = null
+
+    val pagedProducts: Flow<PagingData<com.example.intercommerce_kotlin.features.products.domain.model.Product>> =
+        Pager(
+            config = PagingConfig(
+                pageSize = NetworkConstants.PAGE_LIMIT,
+                initialLoadSize = NetworkConstants.PAGE_LIMIT,
+                prefetchDistance = 2,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = {
+                ProductPagingSource(
+                    getProductsUseCase = getProductsUseCase,
+                    onPageOfflineStatus = { isOffline ->
+                        _uiState.update { it.copy(isOffline = isOffline) }
+                    }
+                )
+            }
+        ).flow.cachedIn(viewModelScope)
 
     init {
         observeCart()
         observeConnectivity()
-        onEvent(ProductCatalogUiEvent.LoadInitial)
     }
 
     private fun observeConnectivity() {
@@ -76,19 +99,18 @@ class ProductCatalogViewModel @Inject constructor(
         }
     }
 
-    fun addProductToCart(productId: Int) {
-        val product = _uiState.value.products.firstOrNull { it.id == productId } ?: return
+    fun addProductToCart(product: Product) {
         viewModelScope.launch {
             addProductToCartUseCase(product, 1)
         }
     }
 
-    fun increaseProductQuantity(productId: Int) {
+    fun increaseProductQuantity(product: Product) {
+        val productId = product.id
         val current = _uiState.value.cartQuantities[productId] ?: 0
-        val product = _uiState.value.products.firstOrNull { it.id == productId } ?: return
         if (current >= product.stock) return
         if (current == 0) {
-            addProductToCart(productId)
+            addProductToCart(product)
             return
         }
         viewModelScope.launch {
@@ -109,8 +131,8 @@ class ProductCatalogViewModel @Inject constructor(
         }
     }
 
-    fun onFavoriteToggle(productId: Int) {
-        val product = _uiState.value.products.firstOrNull { it.id == productId } ?: return
+    fun onFavoriteToggle(product: Product) {
+        val productId = product.id
         val nextValue = !product.isFavorite
         viewModelScope.launch {
             updateProductFavoriteUseCase(productId, nextValue)
@@ -126,89 +148,27 @@ class ProductCatalogViewModel @Inject constructor(
 
     fun onEvent(event: ProductCatalogUiEvent) {
         when (event) {
-            ProductCatalogUiEvent.LoadInitial -> loadInitial()
-            ProductCatalogUiEvent.LoadMore -> loadMore()
             ProductCatalogUiEvent.Retry -> retryCurrentRequest()
             is ProductCatalogUiEvent.QueryChanged -> onQueryChanged(event.query)
         }
     }
 
     private fun retryCurrentRequest() {
-        if (_uiState.value.query.isBlank()) {
-            loadInitial()
-        } else {
+        if (_uiState.value.query.isNotBlank()) {
             performSearch(_uiState.value.query.trim())
-        }
-    }
-
-    private fun loadInitial() {
-        viewModelScope.launch {
-            currentPage = 0
-            _uiState.update {
-                it.copy(
-                    isLoading = true,
-                    errorMessageRes = null,
-                    endReached = false
-                )
-            }
-            when (val result = getProductsUseCase(currentPage)) {
-                is AppResult.Success -> {
-                    _uiState.update {
-                        it.copy(
-                            products = result.data.items,
-                            isLoading = false,
-                            isOffline = result.data.isOffline,
-                            endReached = result.data.endReached
-                        )
-                    }
-                }
-                is AppResult.Error -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessageRes = R.string.catalog_error_load_products
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    private fun loadMore() {
-        val state = _uiState.value
-        if (state.isLoading || state.isLoadingMore || state.endReached || state.query.isNotBlank()) return
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingMore = true, errorMessageRes = null) }
-            val nextPage = currentPage + 1
-            when (val result = getProductsUseCase(nextPage)) {
-                is AppResult.Success -> {
-                    currentPage = nextPage
-                    _uiState.update {
-                        it.copy(
-                            products = it.products + result.data.items,
-                            isLoadingMore = false,
-                            isOffline = result.data.isOffline,
-                            endReached = result.data.endReached
-                        )
-                    }
-                }
-                is AppResult.Error -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoadingMore = false,
-                            errorMessageRes = R.string.catalog_error_load_more
-                        )
-                    }
-                }
-            }
         }
     }
 
     private fun onQueryChanged(query: String) {
         _uiState.update { it.copy(query = query) }
         if (query.isBlank()) {
-            loadInitial()
+            _uiState.update { state ->
+                state.copy(
+                    products = emptyList(),
+                    isLoading = false,
+                    errorMessageRes = null
+                )
+            }
             return
         }
 
