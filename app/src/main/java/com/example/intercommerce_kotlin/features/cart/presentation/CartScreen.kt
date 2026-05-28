@@ -113,32 +113,34 @@ fun CartScreen(
             }
 
             else -> {
-                LazyColumn(
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .padding(innerPadding)
                 ) {
-                    items(state.items, key = { it.productId }) { item ->
-                        CartItemCard(
-                            item = item,
-                            onIncrease = { onIncrease(item) },
-                            onDecrease = { onDecrease(item) },
-                            onRemove = { onRemove(item) }
-                        )
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(state.items, key = { it.productId }) { item ->
+                            CartItemCard(
+                                item = item,
+                                onIncrease = { onIncrease(item) },
+                                onDecrease = { onDecrease(item) },
+                                onRemove = { onRemove(item) }
+                            )
+                        }
                     }
 
-                    item {
-                        SummaryCard(
-                            itemsCount = state.summary.itemsCount,
-                            subtotal = state.summary.subtotal,
-                            discount = state.summary.discount,
-                            tax = state.summary.tax,
-                            total = state.summary.total,
-                            onCheckout = onCheckout
-                        )
-                    }
+                    SummaryCard(
+                        itemsCount = state.summary.itemsCount,
+                        subtotal = state.summary.subtotal,
+                        discount = state.summary.discount,
+                        tax = state.summary.tax,
+                        total = state.summary.total,
+                        onCheckout = onCheckout
+                    )
                 }
             }
         }
@@ -215,6 +217,7 @@ private fun SummaryCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 10.dp)
             .border(1.dp, Color(0xFFE8EAEE), RoundedCornerShape(16.dp))
             .padding(14.dp)
     ) {
