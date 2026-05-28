@@ -1,11 +1,13 @@
 package com.example.intercommerce_kotlin.core.di
 
-import com.example.intercommerce_kotlin.BuildConfig
+import android.content.Context
+import android.content.pm.ApplicationInfo
 import com.example.intercommerce_kotlin.core.network.NetworkConstants
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -28,9 +30,10 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(@ApplicationContext context: Context): OkHttpClient {
+        val isDebuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
         val logger = HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) {
+            level = if (isDebuggable) {
                 HttpLoggingInterceptor.Level.BODY
             } else {
                 HttpLoggingInterceptor.Level.NONE
