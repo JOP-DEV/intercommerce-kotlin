@@ -41,8 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import com.example.intercommerce_kotlin.R
+import com.example.intercommerce_kotlin.core.ui.components.AppNetworkImage
 import com.example.intercommerce_kotlin.features.cart.domain.model.CartItem
 import com.example.intercommerce_kotlin.features.cart.presentation.components.NoConnectionBottomSheet
 
@@ -161,7 +161,11 @@ private fun CartItemCard(
             .padding(12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            AsyncImage(model = item.thumbnail, contentDescription = item.title, modifier = Modifier.size(88.dp))
+            AppNetworkImage(
+                model = item.thumbnail,
+                contentDescription = item.title,
+                modifier = Modifier.size(88.dp)
+            )
             Spacer(Modifier.size(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(item.title, style = MaterialTheme.typography.titleLarge)

@@ -2,7 +2,6 @@ package com.example.intercommerce_kotlin.features.products.presentation.catalog.
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -31,21 +30,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import com.example.intercommerce_kotlin.core.ui.components.AppNetworkImage
 import com.example.intercommerce_kotlin.R
 import com.example.intercommerce_kotlin.features.products.domain.model.Product
 import kotlin.math.floor
@@ -105,34 +100,14 @@ fun ProductCatalogCard(
                 )
             }
 
-            var imageReady by remember(product.thumbnail) { mutableStateOf(false) }
-            val imageAlpha by animateFloatAsState(
-                targetValue = if (imageReady) 1f else 0f,
-                animationSpec = tween(durationMillis = 320),
-                label = "catalog_image_alpha"
-            )
-            val imageScale by animateFloatAsState(
-                targetValue = if (imageReady) 1f else 0.97f,
-                animationSpec = tween(durationMillis = 320),
-                label = "catalog_image_scale"
-            )
-
-            AsyncImage(
+            AppNetworkImage(
                 model = product.thumbnail,
                 contentDescription = product.title,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(118.dp)
-                    .padding(top = 6.dp)
-                    .graphicsLayer {
-                        alpha = imageAlpha
-                        scaleX = imageScale
-                        scaleY = imageScale
-                    },
-                contentScale = ContentScale.Fit,
-                onLoading = { imageReady = false },
-                onSuccess = { imageReady = true },
-                onError = { imageReady = true }
+                    .padding(top = 6.dp),
+                contentScale = ContentScale.Fit
             )
 
             Text(
