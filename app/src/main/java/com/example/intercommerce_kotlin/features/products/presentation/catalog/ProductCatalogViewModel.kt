@@ -138,6 +138,7 @@ class ProductCatalogViewModel @Inject constructor(
             updateProductFavoriteUseCase(productId, nextValue)
             _uiState.update { state ->
                 state.copy(
+                    favoriteOverrides = state.favoriteOverrides + (productId to nextValue),
                     products = state.products.map {
                         if (it.id == productId) it.copy(isFavorite = nextValue) else it
                     }

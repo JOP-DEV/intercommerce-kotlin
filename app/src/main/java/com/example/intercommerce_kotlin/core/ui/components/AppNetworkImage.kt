@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrokenImage
 import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,7 +52,7 @@ fun AppNetworkImage(
         contentDescription = contentDescription,
         modifier = modifier,
         contentScale = contentScale,
-        loading = { CircularProgressIndicator(color = Color(0xFFFF5A1F), strokeWidth = 3.dp) },
+        loading = {},
         error = {
             PlaceholderState(
                 icon = {

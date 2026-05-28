@@ -178,8 +178,9 @@ fun ProductCatalogScreen(
                 if (isPagedMode) {
                     items(count = pagedProducts.itemCount) { index ->
                         val product = pagedProducts[index] ?: return@items
+                        val effectiveFavorite = state.favoriteOverrides[product.id] ?: product.isFavorite
                         ProductCatalogCard(
-                            product = product,
+                            product = product.copy(isFavorite = effectiveFavorite),
                             quantityInCart = state.cartQuantities[product.id] ?: 0,
                             onClick = { onProductClick(product.id) },
                             onFavoriteClick = { onFavoriteClick(product) },
@@ -189,8 +190,9 @@ fun ProductCatalogScreen(
                     }
                 } else {
                     items(items = state.products, key = { it.id }) { product ->
+                        val effectiveFavorite = state.favoriteOverrides[product.id] ?: product.isFavorite
                         ProductCatalogCard(
-                            product = product,
+                            product = product.copy(isFavorite = effectiveFavorite),
                             quantityInCart = state.cartQuantities[product.id] ?: 0,
                             onClick = { onProductClick(product.id) },
                             onFavoriteClick = { onFavoriteClick(product) },
