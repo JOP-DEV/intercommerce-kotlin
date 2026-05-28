@@ -11,6 +11,7 @@
     <string name="out_of_stock">Agotado</string>
     <string name="stock_last_units">Últimas %1$d unidades</string>
     <string name="stock_available_units">%1$d unidades disponibles</string>
+    <string name="available">Disponible</string>
     <string name="label_brand">Marca</string>
     <string name="label_category">Categoría</string>
     <string name="label_stock">Stock</string>

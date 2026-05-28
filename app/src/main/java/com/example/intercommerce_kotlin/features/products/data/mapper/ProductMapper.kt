@@ -17,6 +17,8 @@ fun ProductDto.toEntity(
     stock = stock,
     brand = brand,
     category = category,
+    shippingInformation = shippingInformation,
+    returnPolicy = returnPolicy,
     isFavorite = isFavorite,
     thumbnail = thumbnail,
     images = images.joinToString(separator = "|"),
@@ -33,6 +35,8 @@ fun ProductEntity.toDomain(): Product = Product(
     stock = stock,
     brand = brand,
     category = category,
+    shippingInformation = shippingInformation,
+    returnPolicy = returnPolicy,
     isFavorite = isFavorite,
     thumbnail = thumbnail,
     images = if (images.isBlank()) emptyList() else images.split("|")

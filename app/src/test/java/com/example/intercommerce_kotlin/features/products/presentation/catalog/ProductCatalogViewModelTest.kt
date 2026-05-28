@@ -184,6 +184,8 @@ class ProductCatalogViewModelTest {
         stock = stock,
         brand = "brand",
         category = "beauty",
+        shippingInformation = "Ships in 2 weeks",
+        returnPolicy = "7 days return policy",
         isFavorite = isFavorite,
         thumbnail = "thumb",
         images = emptyList()

@@ -13,6 +13,8 @@ data class ProductDto(
     val stock: Int,
     val brand: String? = null,
     val category: String,
+    val shippingInformation: String = "",
+    val returnPolicy: String = "",
     val thumbnail: String,
     val images: List<String> = emptyList()
 )

@@ -10,6 +10,8 @@ data class Product(
     val stock: Int,
     val brand: String?,
     val category: String,
+    val shippingInformation: String,
+    val returnPolicy: String,
     val isFavorite: Boolean,
     val thumbnail: String,
     val images: List<String>

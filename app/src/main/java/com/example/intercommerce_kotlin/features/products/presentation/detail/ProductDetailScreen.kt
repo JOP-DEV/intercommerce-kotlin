@@ -260,17 +260,10 @@ fun ProductDetailScreen(
                                 }
                             }
                             Spacer(Modifier.height(8.dp))
-                            val stockLabel = when {
-                                product.stock <= 0 -> stringResource(id = R.string.out_of_stock)
-                                product.stock <= 10 -> stringResource(id = R.string.stock_last_units, product.stock)
-                                else -> stringResource(id = R.string.stock_available_units, product.stock)
-                            }
-                            val stockColor = if (product.stock > 0) PositiveGreen else Color(0xFFB42318)
-
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text("★ ${"%.1f".format(product.rating)}")
                                 Text("•")
-                                Text(stockLabel, color = stockColor)
+                                Text(stringResource(id = R.string.available), color = PositiveGreen)
                             }
                             Spacer(Modifier.height(10.dp))
                             Text(product.description, style = MaterialTheme.typography.bodyLarge, color = Color(0xFF545A67))
@@ -278,8 +271,8 @@ fun ProductDetailScreen(
                             DetailRow(stringResource(id = R.string.label_brand), product.brand ?: "-")
                             DetailRow(stringResource(id = R.string.label_category), product.category)
                             DetailRow(stringResource(id = R.string.label_stock), product.stock.toString())
-                            DetailRow(stringResource(id = R.string.label_shipping), stringResource(id = R.string.shipping_eta))
-                            DetailRow(stringResource(id = R.string.label_return), stringResource(id = R.string.return_eta))
+                            DetailRow(stringResource(id = R.string.label_shipping), product.shippingInformation.ifBlank { stringResource(id = R.string.shipping_eta) })
+                            DetailRow(stringResource(id = R.string.label_return), product.returnPolicy.ifBlank { stringResource(id = R.string.return_eta) })
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End

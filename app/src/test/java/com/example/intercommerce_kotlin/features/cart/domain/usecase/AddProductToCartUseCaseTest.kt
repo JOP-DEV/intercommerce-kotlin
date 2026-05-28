@@ -26,6 +26,8 @@ class AddProductToCartUseCaseTest {
             stock = 20,
             brand = "Brand",
             category = "beauty",
+            shippingInformation = "Ships in 2 weeks",
+            returnPolicy = "7 days return policy",
             isFavorite = false,
             thumbnail = "thumb",
             images = emptyList()

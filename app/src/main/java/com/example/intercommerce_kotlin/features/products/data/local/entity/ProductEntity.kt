@@ -14,6 +14,8 @@ data class ProductEntity(
     val stock: Int,
     val brand: String?,
     val category: String,
+    val shippingInformation: String,
+    val returnPolicy: String,
     val isFavorite: Boolean,
     val thumbnail: String,
     val images: String,
